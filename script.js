@@ -4,6 +4,8 @@ const wordDisplay = document.getElementById("word-display");
 async function fetchWord() {
     try {
         const response = await fetch("ordbank.json"); // Hent JSON-filen
+        if (!response.ok) throw new Error("Kunne ikke hente JSON-filen");
+
         const data = await response.json();
         const today = new Date(); // Hent dagens dato
         const dayOfYear = Math.floor((Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) - Date.UTC(today.getFullYear(), 0, 0)) / 86400000);
