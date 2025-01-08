@@ -2,45 +2,65 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: "Noto Serif JP", serif; /* Japansk minimal font */
-    background-color: #f9f9f9;
+    font-family: "Noto Serif JP", serif;
+    background-color: #fefbf6; /* Lys beige bakgrunn */
     color: #333;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
+    align-items: center;
 }
 
-/* Header */
+/* Header-stil */
 header {
+    width: 100%;
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    background: transparent;
+    z-index: 10;
 }
 
-header button {
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 1200px;
+}
+
+nav span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    letter-spacing: 0.05rem;
+}
+
+nav button {
     background: none;
     border: none;
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: #666;
     cursor: pointer;
     transition: color 0.3s ease;
 }
 
-header button:hover {
+nav button:hover {
     color: #000;
 }
 
 /* Hovedseksjon */
 main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    padding: 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 400px;
+    width: 100%;
 }
 
 h1 {
@@ -48,17 +68,11 @@ h1 {
     margin: 0;
     color: #444;
     letter-spacing: 0.1rem;
-}
-
-.subheading {
-    font-size: 1.5rem;
-    margin: 20px 0 10px 0;
-    color: #777;
-    letter-spacing: 0.05rem;
+    margin-bottom: 20px;
 }
 
 #word-display {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: bold;
     color: #222;
     margin-top: 10px;
