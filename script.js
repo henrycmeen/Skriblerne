@@ -8,17 +8,12 @@ async function fetchWord() {
 
         const data = await response.json();
         const today = new Date(); // Hent dagens dato
-        const dayOfYear = Math.floor(
-            (Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) -
-                Date.UTC(today.getFullYear(), 0, 0)) /
-                86400000
-        );
+        const dayOfYear = Math.floor((Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) - Date.UTC(today.getFullYear(), 0, 0)) / 86400000);
 
         const word = data.days[dayOfYear]; // Hent ord for dagens nummer
 
         if (word) {
-            wordDisplay.textContent = word; // Oppdater tekst
-            wordDisplay.classList.add("visible"); // Start fade-in
+            wordDisplay.textContent = word; // Vis dagens ord
         } else {
             wordDisplay.textContent = "Ingen ord funnet for i dag.";
         }
