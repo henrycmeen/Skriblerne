@@ -1,10 +1,4 @@
 const wordDisplay = document.getElementById("word-display");
-const addWordBtn = document.getElementById("add-word-btn");
-
-// Håndter klikk på pluss-tegnet
-addWordBtn.addEventListener("click", () => {
-    alert("Denne funksjonen kommer snart!");
-});
 
 // Hent dagens ord basert på dato
 async function fetchWord() {
