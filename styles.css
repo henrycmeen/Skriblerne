@@ -9,7 +9,8 @@ body {
     flex-direction: column;
     min-height: 100vh;
     align-items: center;
-    overflow: hidden;
+    /* Vurder om du trenger overflow: hidden 
+       - kan klippe innhold ved mindre skjermer */
 }
 
 /* Header-stil */
@@ -36,50 +37,69 @@ nav {
 nav span {
     font-size: 1rem;
     font-weight: bold;
-    color: #333;
+    color: #000000;
     letter-spacing: 0.05rem;
 }
 
 /* Hovedseksjon */
 main {
+    /* Gjør at innholdet er sentrert både horisontalt og vertikalt */
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
-    text-align: center;
+    
+    /* Begrenser linjebredde og gir rom for headeren */
     width: 100%;
+    max-width: 800px;
+    padding: 120px 20px 40px 20px;
+    box-sizing: border-box;
+    text-align: center;
 }
 
-/* Stil for word-display */
+/* Japansk tittel (litt mindre og mer diskret enn hovedord) */
+h1 {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: #121111;
+    margin-bottom: 1.5rem;
+}
+
+/* Norsk ord / "Dagens ord" - hovedfokus */
 #word-display {
-    font-family: "Noto Serif JP", serif;
-    font-weight: medium;
-    font-size: 1.2rem; /* Juster størrelsen på fonten */
+    font-size: 2rem;      /* Større enn h1 for å fremheve */
+    font-weight: 500;
+    color: #101010;
+    margin-bottom: 1.5rem; /* Luft før knappen */
 }
 
-/* Stil for terning-knappen */
+/* Terning-knappen */
 #random-word-button {
     background: none;
     border: none;
-    font-size: 2rem; /* Juster størrelsen på terningen */
+    font-size: 2rem; /* Passer bra til hovedinnholdet */
     cursor: pointer;
     padding: 0;
     margin-top: 20px;
     transition: transform 0.5s ease-in-out;
-    outline: none; /* Fjern standard fokus-stil */
+    outline: none; /* Fjern default fokus-stil */
 }
 
 #random-word-button:focus {
-    outline: none; /* Fjern fokus-stil ved fokus */
+    outline: none; /* Behold gjerne en tilpasset fokusstil for tilgjengelighet */
 }
 
-/* Animasjon for å snurre terningen */
+/* Animasjon for å spinne terningen */
 .spin {
     animation: spin 1s infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
