@@ -9,8 +9,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     align-items: center;
-    /* Vurder om du trenger overflow: hidden 
-       - kan klippe innhold ved mindre skjermer */
+    overflow: hidden 
 }
 
 /* Header-stil */
