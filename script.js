@@ -36,7 +36,7 @@ async function fetchRandomWord() {
         const data = await response.json();
         console.log("Data hentet for tilfeldig ord:", data); // Logg dataene
 
-        const words = data.days;
+        const words = Object.values(data.days); // Konverter objektet til en liste av verdier
         const randomIndex = Math.floor(Math.random() * words.length);
         const randomWord = words[randomIndex];
         console.log("Tilfeldig ord:", randomWord); // Logg tilfeldig ord
