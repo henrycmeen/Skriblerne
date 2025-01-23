@@ -1,4 +1,5 @@
 const wordDisplay = document.getElementById("word-display");
+const randomWordButton = document.getElementById("random-word-button");
 
 // Hent dagens ord basert på dato
 async function fetchWord() {
@@ -23,5 +24,36 @@ async function fetchWord() {
     }
 }
 
+// Funksjon for å hente et tilfeldig ord
+async function fetchRandomWord() {
+    try {
+        const response = await fetch("ordbank.json"); // Hent JSON-filen
+        if (!response.ok) throw new Error("Kunne ikke hente JSON-filen");
+
+        const data = await response.json();
+        const words = data.days;
+        const randomIndex = Math.floor(Math.random() * words.length);
+        const randomWord = words[randomIndex];
+
+        if (randomWord) {
+            wordDisplay.textContent = randomWord; // Vis tilfeldig ord
+        } else {
+            wordDisplay.textContent = "Ingen ord funnet.";
+        }
+    } catch (error) {
+        console.error("Kunne ikke hente tilfeldig ord:", error);
+        wordDisplay.textContent = "Noe gikk galt.";
+    }
+}
+
 // Last dagens ord
 fetchWord();
+
+// Legg til event listener for å hente et tilfeldig ord når knappen klikkes
+randomWordButton.addEventListener('click', () => {
+    randomWordButton.classList.add('spin'); // Start animasjonen
+    setTimeout(async () => {
+        await fetchRandomWord();
+        randomWordButton.classList.remove('spin'); // Stopp animasjonen
+    }, 1000); // Varighet av animasjonen
+});
