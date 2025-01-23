@@ -8,10 +8,13 @@ async function fetchWord() {
         if (!response.ok) throw new Error("Kunne ikke hente JSON-filen");
 
         const data = await response.json();
+        console.log("Data hentet for dagens ord:", data); // Logg dataene
+
         const today = new Date(); // Hent dagens dato
         const dayOfYear = Math.floor((Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) - Date.UTC(today.getFullYear(), 0, 0)) / 86400000);
 
         const word = data.days[dayOfYear]; // Hent ord for dagens nummer
+        console.log("Dagens ord:", word); // Logg dagens ord
 
         if (word) {
             wordDisplay.textContent = word; // Vis dagens ord
@@ -31,9 +34,12 @@ async function fetchRandomWord() {
         if (!response.ok) throw new Error("Kunne ikke hente JSON-filen");
 
         const data = await response.json();
+        console.log("Data hentet for tilfeldig ord:", data); // Logg dataene
+
         const words = data.days;
         const randomIndex = Math.floor(Math.random() * words.length);
         const randomWord = words[randomIndex];
+        console.log("Tilfeldig ord:", randomWord); // Logg tilfeldig ord
 
         if (randomWord) {
             wordDisplay.textContent = randomWord; // Vis tilfeldig ord
