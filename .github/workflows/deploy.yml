@@ -21,10 +21,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
-        
+      
+      - name: Fix base paths
+        run: |
+          find . -type f -name "*.html" -exec sed -i 's|href="/|href="./|g' {} +
+          find . -type f -name "*.html" -exec sed -i 's|src="/|src="./|g' {} +
+          find . -type f -name "*.js" -exec sed -i "s|fetch('/|fetch('./|g" {} +
+
+      - name: Create 404.html
+        run: |
+          cp index.html 404.html
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
