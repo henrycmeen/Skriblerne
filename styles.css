@@ -1,104 +1,124 @@
 /* Generell stil */
+:root {
+    --font-size-large: 2.4rem;
+    --font-size-medium: 1.8rem;
+    --font-size-small: 1.2rem;
+    --font-size-text: 1.1rem;  /* New size for body text */
+}
+
 body {
     margin: 0;
     padding: 0;
     font-family: "Noto Serif JP", serif;
-    background-color: #F5EEE7; /* Lys beige bakgrunn */
+    background-color: #F5EEE7;
     color: #101010;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     align-items: center;
-    overflow: hidden 
+    font-size: var(--font-size-small);
 }
 
-/* Header-stil */
+/* Header styles */
 header {
     width: 100%;
-    position: absolute;
-    top: 0;
-    padding: 20px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    background: transparent;
-    z-index: 10;
+    padding: 20px 0;
 }
 
 nav {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    width: 90%;
-    max-width: 1200px;
+    align-items: center;
+    padding: 0 40px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-nav span {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #000000;
-    letter-spacing: 0.05rem;
+.site-title {
+    font-size: var(--font-size-medium);
+    font-weight: 500;
 }
 
-/* Hovedseksjon */
+.menu-container {
+    position: relative;
+}
+
+.hamburger {
+    background: none;
+    border: none;
+    font-size: var(--font-size-medium);
+    cursor: pointer;
+    padding: 10px;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    top: 100%;
+    right: 0;
+    min-width: 150px;
+}
+
+.menu.visible {
+    display: block;
+}
+
+.menu a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: black;
+    font-size: var(--font-size-small);
+}
+
+.menu a:hover {
+    background: #f5f5f5;
+}
+
+/* Main content */
 main {
-    /* Gjør at innholdet er sentrert både horisontalt og vertikalt */
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; 
+    justify-content: center;
     align-items: center;
-    
-    /* Begrenser linjebredde og gir rom for headeren */
     width: 100%;
     max-width: 800px;
-    padding: 120px 20px 40px 20px;
+    padding: 40px 20px;
     box-sizing: border-box;
     text-align: center;
 }
 
-/* Japansk tittel (litt mindre og mer diskret enn hovedord) */
 h1 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #121111;
+    font-size: var(--font-size-large);
+    font-weight: 500;
     margin-bottom: 1.5rem;
 }
 
-/* Norsk ord / "Dagens ord" - hovedfokus */
 #word-display {
-    font-size: 2.4rem;      /* Større enn h1 for å fremheve */
+    font-size: var(--font-size-large);
     font-weight: 400;
-    color: #101010;
-    margin-bottom: 1.5rem; /* Luft før knappen */
+    margin-bottom: 1.5rem;
 }
 
-/* Terning-knappen */
 #random-word-button {
     background: none;
     border: none;
-    font-size: 2rem; /* Passer bra til hovedinnholdet */
+    font-size: var(--font-size-large);
     cursor: pointer;
     padding: 0;
     margin-top: 20px;
     transition: transform 0.5s ease-in-out;
-    outline: none; /* Fjern default fokus-stil */
 }
 
-#random-word-button:focus {
-    outline: none; /* Behold gjerne en tilpasset fokusstil for tilgjengelighet */
-}
-
-/* Animasjon for å spinne terningen */
 .spin {
     animation: spin 1s infinite;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

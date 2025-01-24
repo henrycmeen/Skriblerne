@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skriblerne Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #FDF6E3;
+            overflow-y: auto;
+        }
+        
+        main {
+            padding-top: 40px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+        
+        .add-word-form {
+            margin: 40px 0;
+        }
+        
+        .add-word-form input {
+            width: 100%;
+            padding: 12px 0;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: var(--font-size-medium);
+            background: transparent;
+            margin-bottom: 20px;
+        }
+        
+        .add-word-form button {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: var(--font-size-small);
+        }
+        
+        .word-item {
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-size: var(--font-size-text);  /* Changed from medium to text size */
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .word-item:hover {
+            background-color: rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <span class="site-title">Skriblerne</span>
+            <div class="menu-container">
+                <button class="hamburger" id="menuButton">☰</button>
+                <div class="menu" id="menu">
+                    <a href="/">Hjem</a>
+                    <a href="/admin.html">Admin</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <style>
+            .add-word-form {
+                margin: 40px 0;
+                display: flex;
+                align-items: flex-end;
+                gap: 20px;
+            }
+            
+            .input-wrapper {
+                flex: 1;
+            }
+            
+            .add-word-form input {
+                width: 100%;
+                padding: 8px 0;
+                border: none;
+                border-bottom: 1px solid #ddd;
+                font-size: var(--font-size-text);
+                background: transparent;
+                margin-bottom: 4px;
+            }
+            
+            .add-word-form button {
+                padding: 8px 16px;
+                background: #333;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: var(--font-size-text);
+                margin-bottom: 4px;
+            }
+        </style>
+        
+        <!-- Update the HTML structure -->
+        <div class="add-word-form">
+            <div class="input-wrapper">
+                <input type="text" id="newWord" placeholder="Skriv inn nytt ord">
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+            <button onclick="addWord()">Legg til</button>
+        </div>
+        <div id="words-container"></div>
+    </main>
+    <script src="js/menu.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

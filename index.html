@@ -9,14 +9,21 @@
 <body>
     <header>
         <nav>
-            <span>Skriblerne</span>
+            <span class="site-title">Skriblerne</span>
+            <div class="menu-container">
+                <button class="hamburger" id="menuButton">☰</button>
+                <div class="menu" id="menu">
+                    <a href="/admin.html">Admin</a>
+                </div>
+            </div>
         </nav>
     </header>
     <main>
-        <h1>描画の挑戦</h1> <!-- "Tegneutfordring" på japansk -->
-        <div id="word-display">Laster dagens ord...</div> <!-- Dynamisk innhold -->
-        <button id="random-word-button">🎲</button> <!-- Terning-emoji knapp -->
+        <h3>描画の挑戦</h1>
+        <div id="word-display">Laster dagens ord...</div>
+        <button id="random-word-button">🎲</button>
     </main>
-    <script src="script.js"></script>
+    <script src="js/menu.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
