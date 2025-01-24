@@ -1,7 +1,8 @@
+import { API_BASE_URL } from './config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     loadWords();
     
-    // Add Enter key support
     document.getElementById('newWord').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -10,52 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function createWordElement(word, date) {
-    const wordElement = document.createElement('div');
-    wordElement.className = 'word-item';
-    const dateStr = new Date(date).toLocaleDateString('no-NO');
-    wordElement.textContent = `${dateStr}: ${word}`;
-    
-    // Add click handler for editing
-    wordElement.addEventListener('click', () => {
-        const newWord = prompt('Endre ord:', word);
-        if (newWord && newWord.trim() !== word) {
-            updateWord(word, newWord.trim().toUpperCase());
-        }
-    });
-    
-    return wordElement;
-}
-
-async function updateWord(oldWord, newWord) {
-    try {
-        const response = await fetch('/api/word/update', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                oldWord: oldWord,
-                newWord: newWord 
-            })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Could not update word');
-        }
-
-        await loadWords(); // Refresh the list
-    } catch (error) {
-        console.error('Error updating word:', error);
-        alert('Kunne ikke oppdatere ordet: ' + error.message);
-    }
-}
-
-// Update loadWords function to use createWordElement
 async function loadWords() {
     try {
-        const response = await fetch('/api/words');
+        const response = await fetch(`${API_BASE_URL}/api/words`);
         if (!response.ok) throw new Error('Could not fetch words');
         
         const words = await response.json();
@@ -81,7 +39,7 @@ async function addWord() {
     if (!word) return;
 
     try {
-        const response = await fetch('/api/word', {
+        const response = await fetch(`${API_BASE_URL}/api/word`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -94,7 +52,6 @@ async function addWord() {
             throw new Error(error.error || 'Could not add word');
         }
         
-        const result = await response.json();
         wordInput.value = '';
         errorMessage.textContent = '';
         errorMessage.classList.remove('visible');
@@ -105,4 +62,12 @@ async function addWord() {
         errorMessage.textContent = error.message;
         errorMessage.classList.add('visible');
     }
+}
+
+function createWordElement(word, date) {
+    const wordElement = document.createElement('div');
+    wordElement.className = 'word-item';
+    const dateStr = new Date(date).toLocaleDateString('no-NO');
+    wordElement.textContent = `${dateStr}: ${word}`;
+    return wordElement;
 }
