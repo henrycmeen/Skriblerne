@@ -1,6 +1,6 @@
 # Skriblerne
 
-A Norwegian word game application that displays daily words for players to guess.
+Skriblerne is a Norwegian drawing game where players get a new word to draw every day. 
 
 ## Project Architecture
 
