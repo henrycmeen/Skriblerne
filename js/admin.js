@@ -56,7 +56,8 @@ async function getNextAvailableDate() {
             return tomorrow.toISOString().split('T')[0];
         }
         
-        const latestDate = new Date(Math.max(...words.map(w => new Date(w.date))));
+        const dates = words.map(w => new Date(w.date));
+        const latestDate = new Date(dates.sort((a, b) => b - a)[0]);
         latestDate.setDate(latestDate.getDate() + 1);
         return latestDate.toISOString().split('T')[0];
     } catch (error) {
