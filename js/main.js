@@ -11,7 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     wordService.fetchWord();
     
     // Handle random word button click
-    randomWordButton.addEventListener('click', () => {
-        handleDiceAnimation(randomWordButton, () => wordService.fetchRandomWord());
-    });
+    if (randomWordButton) {
+        randomWordButton.addEventListener('click', () => {
+            handleDiceAnimation(randomWordButton, () => wordService.fetchRandomWord());
+        });
+    }
 });
