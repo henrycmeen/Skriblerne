@@ -74,16 +74,12 @@ async function addWord() {
     if (!word) return;
 
     try {
-        const nextDate = await getNextAvailableDate();
         const response = await fetch(`${API_BASE_URL}/api/words`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ 
-                word: word,
-                date: nextDate
-            })
+            body: JSON.stringify({ word })
         });
 
         if (!response.ok) {
