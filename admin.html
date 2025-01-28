@@ -19,32 +19,40 @@
         
         .add-word-form {
             margin: 40px 0;
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+        }
+        
+        .input-wrapper {
+            flex: 1;
         }
         
         .add-word-form input {
             width: 100%;
-            padding: 12px 0;
+            padding: 8px 0;
             border: none;
             border-bottom: 1px solid #ddd;
-            font-size: var(--font-size-medium);
+            font-size: var(--font-size-text);
             background: transparent;
-            margin-bottom: 20px;
+            margin-bottom: 4px;
         }
         
         .add-word-form button {
-            padding: 10px 20px;
+            padding: 8px 16px;
             background: #333;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: var(--font-size-small);
+            font-size: var(--font-size-text);
+            margin-bottom: 4px;
         }
         
         .word-item {
             padding: 15px 0;
             border-bottom: 1px solid rgba(0,0,0,0.1);
-            font-size: var(--font-size-text);  /* Changed from medium to text size */
+            font-size: var(--font-size-text);
             text-align: left;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -69,51 +77,15 @@
         </nav>
     </header>
     <main>
-        <style>
-            .add-word-form {
-                margin: 40px 0;
-                display: flex;
-                align-items: flex-end;
-                gap: 20px;
-            }
-            
-            .input-wrapper {
-                flex: 1;
-            }
-            
-            .add-word-form input {
-                width: 100%;
-                padding: 8px 0;
-                border: none;
-                border-bottom: 1px solid #ddd;
-                font-size: var(--font-size-text);
-                background: transparent;
-                margin-bottom: 4px;
-            }
-            
-            .add-word-form button {
-                padding: 8px 16px;
-                background: #333;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: var(--font-size-text);
-                margin-bottom: 4px;
-            }
-        </style>
-        
-        <!-- Update the HTML structure -->
         <div class="add-word-form">
             <div class="input-wrapper">
                 <input type="text" id="newWord" placeholder="Skriv inn nytt ord">
                 <div class="error-message" id="errorMessage"></div>
             </div>
-            <button onclick="addWord()">Legg til</button>
+            <button id="addWordButton">Legg til</button>
         </div>
         <div id="words-container"></div>
     </main>
-    <!-- Near the bottom of the file -->
     <script src="js/menu.js"></script>
     <script type="module" src="js/admin.js"></script>
 </body>
