@@ -3,6 +3,10 @@ import { API_BASE_URL } from './config.js';
 document.addEventListener('DOMContentLoaded', () => {
     loadWords();
     
+    // Add click handler for the add button
+    document.getElementById('addWordButton').addEventListener('click', addWord);
+    
+    // Existing Enter key handler
     document.getElementById('newWord').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -13,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadWords() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/words`);
+        const response = await fetch(`${API_BASE_URL}/api/words`);  // This is correct
         if (!response.ok) throw new Error('Could not fetch words');
         
         const words = await response.json();
@@ -31,6 +35,29 @@ async function loadWords() {
     }
 }
 
+async function getNextAvailableDate() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/words`);  // This is correct
+        if (!response.ok) throw new Error('Could not fetch words');
+        
+        const words = await response.json();
+        if (words.length === 0) {
+            // If no words exist, start from tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return tomorrow.toISOString().split('T')[0];
+        }
+        
+        // Find the latest date and add one day
+        const latestDate = new Date(Math.max(...words.map(w => new Date(w.date))));
+        latestDate.setDate(latestDate.getDate() + 1);
+        return latestDate.toISOString().split('T')[0];
+    } catch (error) {
+        console.error('Error getting next date:', error);
+        throw error;
+    }
+}
+
 async function addWord() {
     const wordInput = document.getElementById('newWord');
     const errorMessage = document.getElementById('errorMessage');
@@ -39,12 +66,16 @@ async function addWord() {
     if (!word) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/word`, {
+        const nextDate = await getNextAvailableDate();
+        const response = await fetch(`${API_BASE_URL}/api/words`, {  // Make sure this is /api/words
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ word })
+            body: JSON.stringify({ 
+                word: word,
+                date: nextDate
+            })
         });
 
         if (!response.ok) {
@@ -53,13 +84,20 @@ async function addWord() {
         }
         
         wordInput.value = '';
-        errorMessage.textContent = '';
-        errorMessage.classList.remove('visible');
+        errorMessage.textContent = 'Word added successfully!';
+        errorMessage.style.color = 'green';
+        errorMessage.classList.add('visible');
         await loadWords();
         wordInput.focus();
+
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+            errorMessage.classList.remove('visible');
+        }, 3000);
     } catch (error) {
         console.error('Error adding word:', error);
         errorMessage.textContent = error.message;
+        errorMessage.style.color = 'red';
         errorMessage.classList.add('visible');
     }
 }
