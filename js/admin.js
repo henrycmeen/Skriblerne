@@ -9,6 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const wordInput = document.getElementById('newWord');
     
     if (form && wordInput) {
+        // Prevent iOS double-tap zoom
+        const meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, initial-scale=1, maximum-scale=1';
+        document.head.appendChild(meta);
+
+        // iOS-specific input styling
+        wordInput.style.appearance = 'none';
+        wordInput.style.webkitAppearance = 'none';
+        wordInput.style.borderRadius = '4px';
+        wordInput.style.fontSize = '16px';
+        wordInput.style.padding = '12px';
+        wordInput.style.marginBottom = '10px';
+        wordInput.setAttribute('autocomplete', 'off');
+        wordInput.setAttribute('autocorrect', 'off');
+        wordInput.setAttribute('autocapitalize', 'off');
+        wordInput.setAttribute('spellcheck', 'false');
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             addWord();
