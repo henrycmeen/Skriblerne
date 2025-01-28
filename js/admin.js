@@ -4,14 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     loadWords();
     
-    // Set up event listeners
-    const addButton = document.getElementById('addWordButton');
-    if (addButton) {
-        addButton.addEventListener('click', addWord);
-    }
-    
+    // Set up form submission handler
+    const form = document.querySelector('.add-word-form');
     const wordInput = document.getElementById('newWord');
-    if (wordInput) {
+    
+    if (form && wordInput) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addWord();
+        });
+        
+        // Handle both Enter key and mobile keyboard's 'done' action
         wordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
