@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadWords() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/words`);
-        if (!response.ok) throw new Error('Could not fetch words');
+        if (!response.ok) throw new Error('fåkke henta words');
         
         const words = await response.json();
         const container = document.getElementById('words-container');
@@ -40,7 +40,7 @@ async function loadWords() {
             container.appendChild(wordElement);
         });
     } catch (error) {
-        console.error('Error in loadWords:', error);
+        console.error('Error for loadWords:', error);
     }
 }
 
@@ -61,7 +61,7 @@ async function getNextAvailableDate() {
         latestDate.setDate(latestDate.getDate() + 1);
         return latestDate.toISOString().split('T')[0];
     } catch (error) {
-        console.error('Error getting next date:', error);
+        console.error('Error for å hente dato:', error);
         throw error;
     }
 }
@@ -84,11 +84,11 @@ async function addWord() {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'Could not add word');
+            throw new Error(error.error || 'Det gikk ikke');
         }
         
         wordInput.value = '';
-        errorMessage.textContent = 'Word added successfully!';
+        errorMessage.textContent = 'Ordet er lagt til!';
         errorMessage.style.color = 'green';
         errorMessage.classList.add('visible');
         await loadWords();
@@ -98,7 +98,7 @@ async function addWord() {
             errorMessage.classList.remove('visible');
         }, 3000);
     } catch (error) {
-        console.error('Error adding word:', error);
+        console.error('Error gitt:', error);
         errorMessage.textContent = error.message;
         errorMessage.style.color = 'red';
         errorMessage.classList.add('visible');
