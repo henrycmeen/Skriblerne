@@ -4,36 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skriblerne</title>
+    <!-- Include the Japanese font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: #FDF6E3;
+            overflow-y: auto;
+            margin: 0;
+            font-family: 'Noto Sans JP', Arial, sans-serif;  /* Use the Japanese font */
+        }
+        
+        header, main {
+            padding: 20px;
+        }
+        
+        .site-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .menu-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .menu {
+            display: none;
+        }
+        
+        .hamburger {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        @media (min-width: 600px) {
+            .menu {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-    <script>
-        (function(){
-            let redirect = sessionStorage.redirect;
-            delete sessionStorage.redirect;
-            if (redirect && redirect != location.href) {
-                history.replaceState(null, null, redirect);
-            }
-        })();
-    </script>
-    <!-- rest of your body content -->
     <header>
         <nav>
             <span class="site-title">Skriblerne</span>
             <div class="menu-container">
                 <button class="hamburger" id="menuButton">☰</button>
                 <div class="menu" id="menu">
+                    <a href="/">Hjem</a>
                     <a href="/admin.html">Admin</a>
                 </div>
             </div>
         </nav>
     </header>
     <main>
-        <h3>描画の挑戦</h1>
-        <div id="word-display">Laster dagens ord...</div>
-        <button id="random-word-button">🎲</button>
+        <!-- Main content goes here -->
     </main>
     <script src="js/menu.js"></script>
-    <script type="module" src="js/main.js"></script>
 </body>
 </html>
