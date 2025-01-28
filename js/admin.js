@@ -21,6 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 addWord();
             }
         });
+
+        // Handle mobile keyboard's 'done' action through input event
+        wordInput.addEventListener('input', (e) => {
+            if (e.inputType === 'insertLineBreak') {
+                e.preventDefault();
+                addWord();
+            }
+        });
+
+        // Ensure proper appearance on mobile devices
+        wordInput.style.appearance = 'none';
+        wordInput.style.webkitAppearance = 'none';
+        wordInput.style.borderRadius = '4px';
+        wordInput.style.fontSize = '16px'; // Prevents iOS zoom on focus
     }
 });
 
