@@ -9,6 +9,7 @@ const state = {
     calendar: null,
     currentMemory: null,
     dayMemories: [],
+    selectedComparisonYear: null,
     editCode: localStorage.getItem(EDIT_CODE_STORAGE_KEY) || ''
 };
 
@@ -28,6 +29,7 @@ const elements = {
     yearStrip: document.getElementById('yearStrip'),
     comparison: document.querySelector('.comparison'),
     comparisonList: document.getElementById('comparisonList'),
+    comparisonPair: document.getElementById('comparisonPair'),
     yearGrid: document.getElementById('yearGrid'),
     overviewSummary: document.getElementById('overviewSummary'),
     overviewHeading: document.getElementById('overviewHeading'),
@@ -219,23 +221,67 @@ function renderYearStrip() {
 
 function renderComparison() {
     elements.comparisonList.replaceChildren();
+    elements.comparisonPair.replaceChildren();
 
     const otherMemories = state.dayMemories.filter((memory) => memory.year !== state.selectedYear);
     if (otherMemories.length === 0) {
         elements.comparison.hidden = true;
+        elements.comparisonPair.hidden = true;
         return;
     }
 
     elements.comparison.hidden = false;
-    otherMemories.slice(0, 6).forEach((memory) => {
-        const figure = document.createElement('figure');
-        figure.className = 'comparison-item';
-        figure.innerHTML = `
-            <img src="${memory.thumbnailData}" alt="${memory.word}, ${memory.year}">
-            <figcaption>${memory.year}</figcaption>
-        `;
-        elements.comparisonList.appendChild(figure);
+    const visibleMemories = otherMemories.slice(0, 6);
+    const selectedComparison = visibleMemories.find((memory) => memory.year === state.selectedComparisonYear) || visibleMemories[0];
+    state.selectedComparisonYear = selectedComparison.year;
+
+    visibleMemories.forEach((memory) => {
+        const button = document.createElement('button');
+        const image = document.createElement('img');
+        const year = document.createElement('span');
+
+        button.type = 'button';
+        button.className = 'comparison-item';
+        button.classList.toggle('comparison-item--active', memory.year === selectedComparison.year);
+        button.setAttribute('aria-pressed', String(memory.year === selectedComparison.year));
+        button.setAttribute('aria-label', `Sammenlign med ${memory.year}`);
+
+        image.src = memory.thumbnailData;
+        image.alt = '';
+        year.textContent = String(memory.year);
+
+        button.append(image, year);
+        button.addEventListener('click', () => {
+            state.selectedComparisonYear = memory.year;
+            renderComparison();
+        });
+        elements.comparisonList.appendChild(button);
     });
+
+    if (!state.currentMemory?.imageData || !selectedComparison?.imageData) {
+        elements.comparisonPair.hidden = true;
+        return;
+    }
+
+    elements.comparisonPair.hidden = false;
+    elements.comparisonPair.append(
+        createComparisonFigure(state.currentMemory, 'Valgt år'),
+        createComparisonFigure(selectedComparison, 'Tidligere år')
+    );
+}
+
+function createComparisonFigure(memory, label) {
+    const figure = document.createElement('figure');
+    const image = document.createElement('img');
+    const caption = document.createElement('figcaption');
+
+    figure.className = 'comparison-panel';
+    image.src = memory.imageData;
+    image.alt = `${memory.word}, ${memory.year}`;
+    caption.textContent = `${label}: ${memory.year}`;
+
+    figure.append(image, caption);
+    return figure;
 }
 
 function renderOverview() {
