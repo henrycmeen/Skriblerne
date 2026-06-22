@@ -24,6 +24,7 @@ assert.match(html, /id="photoSourceContext"/);
 assert.match(html, /id="photoMeta"/);
 assert.match(html, /id="dayOwnerStrip"/);
 assert.match(html, /id="overviewLegend"/);
+assert.match(html, /Prikker: bare Henry 0, bare Ellinor 0, begge 0\./);
 assert.match(html, /id="loginDialog"/);
 assert.match(html, /data-login-owner="henry"/);
 assert.match(html, /data-login-owner="ellinor"/);
