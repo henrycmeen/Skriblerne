@@ -9,6 +9,7 @@ import {
     approveReviewForReviewer,
     buildReviewSyncStatus,
     buildMonthProgress,
+    getMissingReviewerCounts,
     hasRequiredReviewers,
     isReviewCompleteForApply,
     markReviewer,
@@ -17,13 +18,29 @@ import {
     needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260622-27';
+} from './review-progress.mjs?v=20260622-28';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
 const REVIEW_DIRTY_STORAGE_KEY = 'skriblerne-word-review-dirty-v1';
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
-const REVIEW_FILTERS = new Set(['all', 'open', 'mine', 'flagged', 'suggested']);
+const REVIEW_FILTERS = new Set([
+    'all',
+    'open',
+    'mine',
+    'missing-both',
+    'missing-henry',
+    'missing-ellinor',
+    'flagged',
+    'suggested'
+]);
+const REVIEW_NEXT_FILTERS = new Set([
+    'open',
+    'mine',
+    'missing-both',
+    'missing-henry',
+    'missing-ellinor'
+]);
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const sharedDateFormatter = new Intl.DateTimeFormat('nb-NO', {
@@ -518,6 +535,9 @@ function updateFilterControls(words) {
         all: `Alle ${words.length}`,
         open: `Uavklarte ${stats.open}`,
         mine: `Mangler ${OWNER_LABELS[activeReviewer]} ${stats.missingByReviewer[activeReviewer]}`,
+        'missing-both': `Mangler begge ${stats.missingBoth}`,
+        'missing-henry': `Mangler Henry ${stats.missingByReviewer.henry}`,
+        'missing-ellinor': `Mangler Ellinor ${stats.missingByReviewer.ellinor}`,
         flagged: `Se på ${stats.flagged}`,
         suggested: `Forslag ${stats.suggested}`
     };
@@ -528,9 +548,7 @@ function updateFilterControls(words) {
         button.classList.toggle('review-filter-button--active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
     });
-    elements.nextOpenButton.textContent = activeFilter === 'mine'
-        ? 'Neste som mangler meg'
-        : 'Neste uavklarte';
+    elements.nextOpenButton.textContent = nextOpenButtonLabel();
 }
 
 function renderMonthNav(words) {
@@ -707,6 +725,7 @@ function getReviewStats(words) {
     let suggested = 0;
     let duplicateCount = 0;
     let missingReviewers = 0;
+    const missingReviewerCounts = getMissingReviewerCounts(words, reviewState);
     const reviewers = Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]));
     const missingByReviewer = Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]));
 
@@ -748,6 +767,7 @@ function getReviewStats(words) {
     return {
         duplicateCount,
         flagged,
+        missingBoth: missingReviewerCounts.both,
         missingReviewers,
         missingByReviewer,
         open,
@@ -776,6 +796,18 @@ function matchesReviewFilter(word, filter = activeFilter) {
 
     if (filter === 'mine') {
         return needsReviewer(review, activeReviewer);
+    }
+
+    if (filter === 'missing-both') {
+        return REQUIRED_REVIEWERS.every((reviewer) => needsReviewer(review, reviewer));
+    }
+
+    if (filter === 'missing-henry') {
+        return needsReviewer(review, 'henry');
+    }
+
+    if (filter === 'missing-ellinor') {
+        return needsReviewer(review, 'ellinor');
     }
 
     if (filter === 'flagged') {
@@ -826,14 +858,12 @@ function setActiveFilter(filter) {
 }
 
 function goToNextOpenWord() {
-    const targetFilter = activeFilter === 'mine' ? 'mine' : 'open';
+    const targetFilter = REVIEW_NEXT_FILTERS.has(activeFilter) ? activeFilter : 'open';
     const nextOpenWord = currentWords.find((word) => matchesReviewFilter(word, targetFilter));
 
     if (!nextOpenWord) {
         setReviewStatus(
-            targetFilter === 'mine'
-                ? `Alle ord er gjennomgått av ${OWNER_LABELS[activeReviewer]}.`
-                : 'Alle ord er markert, signert av begge og flaggede ord har forslag.',
+            nextOpenDoneMessage(targetFilter),
             'success'
         );
         return;
@@ -847,6 +877,46 @@ function goToNextOpenWord() {
         row?.querySelector('.review-quick-approve:not(:disabled), input')?.focus({ preventScroll: true });
         window.setTimeout(() => row?.classList.remove('review-word-row--focus'), 1600);
     });
+}
+
+function nextOpenButtonLabel() {
+    if (activeFilter === 'mine') {
+        return 'Neste som mangler meg';
+    }
+
+    if (activeFilter === 'missing-both') {
+        return 'Neste som mangler begge';
+    }
+
+    if (activeFilter === 'missing-henry') {
+        return 'Neste som mangler Henry';
+    }
+
+    if (activeFilter === 'missing-ellinor') {
+        return 'Neste som mangler Ellinor';
+    }
+
+    return 'Neste uavklarte';
+}
+
+function nextOpenDoneMessage(filter) {
+    if (filter === 'mine') {
+        return `Alle ord er gjennomgått av ${OWNER_LABELS[activeReviewer]}.`;
+    }
+
+    if (filter === 'missing-both') {
+        return 'Ingen ord mangler begge gjennomganger.';
+    }
+
+    if (filter === 'missing-henry') {
+        return 'Ingen ord mangler Henry-gjennomgang.';
+    }
+
+    if (filter === 'missing-ellinor') {
+        return 'Ingen ord mangler Ellinor-gjennomgang.';
+    }
+
+    return 'Alle ord er markert, signert av begge og flaggede ord har forslag.';
 }
 
 function exportReview(words) {

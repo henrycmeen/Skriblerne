@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
     approveReviewForReviewer,
     buildReviewSyncStatus,
+    getMissingReviewerCounts,
     buildMonthProgress,
     hasRequiredReviewers,
     isReviewCompleteForApply,
@@ -35,6 +36,11 @@ assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: '' , r
 assert.equal(isReviewCompleteForApply({}), false);
 assert.equal(needsReviewer({ reviewers: { henry: true } }, 'henry'), false);
 assert.equal(needsReviewer({ reviewers: { henry: true } }, 'ellinor'), true);
+assert.deepEqual(getMissingReviewerCounts(words, reviewState), {
+    both: 1,
+    henry: 2,
+    ellinor: 2
+});
 assert.deepEqual(
     markReviewer({ status: 'approved', reviewers: { ellinor: true } }, 'henry'),
     { status: 'approved', reviewers: { henry: true, ellinor: true } }

@@ -24,6 +24,26 @@ export function needsReviewer(review = {}, reviewer) {
     return !normalizeReviewers(review.reviewers)[reviewer];
 }
 
+export function getMissingReviewerCounts(words = [], reviewState = {}) {
+    return words.reduce((counts, word) => {
+        const reviewers = normalizeReviewers(reviewState[word.monthDay]?.reviewers);
+        const missingReviewers = REQUIRED_REVIEWERS.filter((reviewer) => !reviewers[reviewer]);
+
+        missingReviewers.forEach((reviewer) => {
+            counts[reviewer] += 1;
+        });
+
+        if (missingReviewers.length === REQUIRED_REVIEWERS.length) {
+            counts.both += 1;
+        }
+
+        return counts;
+    }, {
+        both: 0,
+        ...Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]))
+    });
+}
+
 export function markReviewer(review = {}, reviewer) {
     const reviewers = normalizeReviewers(review.reviewers);
 
