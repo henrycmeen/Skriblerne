@@ -1,13 +1,14 @@
 import { API_BASE_URL } from './config.js';
+import {
+    OWNER_LABELS,
+    buildSameDateHistory,
+    getMemoryKey,
+    normalizeOwner
+} from './history-utils.mjs';
 
 const today = new Date();
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
 const OWNER_STORAGE_KEY = 'skriblerne-owner';
-const DEFAULT_OWNER = 'henry';
-const OWNER_LABELS = {
-    henry: 'Henry',
-    ellinor: 'Ellinor'
-};
 const state = {
     view: 'today',
     selectedYear: today.getFullYear(),
@@ -73,31 +74,8 @@ function normalizeCycleMonthDay(monthDay) {
     return monthDay === '02-29' ? '02-28' : monthDay;
 }
 
-function normalizeOwner(owner) {
-    if (typeof owner !== 'string') {
-        return DEFAULT_OWNER;
-    }
-
-    const normalizedOwner = owner.trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(OWNER_LABELS, normalizedOwner)
-        ? normalizedOwner
-        : DEFAULT_OWNER;
-}
-
 function ownerLabel(owner = state.owner) {
     return OWNER_LABELS[normalizeOwner(owner)];
-}
-
-function memoryKey(memory) {
-    if (!memory) {
-        return '';
-    }
-
-    return `${memory.year}:${normalizeOwner(memory.owner)}`;
-}
-
-function currentMemoryKey() {
-    return `${state.selectedYear}:${state.owner}`;
 }
 
 function memoriesForDay(day) {
@@ -290,12 +268,12 @@ function renderPhoto() {
 function renderYearStrip() {
     elements.yearStrip.replaceChildren();
 
-    const activeKey = currentMemoryKey();
-    const memoriesToShow = state.dayMemories.filter((memory) => (
-        memoryKey(memory) !== activeKey || state.dayMemories.length > 1
-    ));
+    const history = buildSameDateHistory(state.dayMemories, {
+        activeYear: state.selectedYear,
+        activeOwner: state.owner
+    });
 
-    if (memoriesToShow.length === 0) {
+    if (history.timeline.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'muted';
         empty.textContent = 'Ingen tidligere bilder på denne datoen.';
@@ -303,16 +281,16 @@ function renderYearStrip() {
         return;
     }
 
-    memoriesToShow.forEach((memory) => {
+    history.timeline.forEach((memory) => {
         const button = document.createElement('button');
         const image = document.createElement('img');
         const label = document.createElement('span');
         const ownerName = ownerLabel(memory.owner);
-        const key = memoryKey(memory);
+        const key = getMemoryKey(memory);
 
         button.type = 'button';
         button.className = 'year-memory';
-        button.classList.toggle('year-memory--active', key === activeKey);
+        button.classList.toggle('year-memory--active', key === history.activeKey);
         button.setAttribute('aria-label', `Åpne ${memory.word} fra ${ownerName} ${memory.year}`);
 
         image.src = memory.thumbnailData;
@@ -335,24 +313,26 @@ function renderComparison() {
     elements.comparisonList.replaceChildren();
     elements.comparisonPair.replaceChildren();
 
-    const activeKey = currentMemoryKey();
-    const otherMemories = state.dayMemories.filter((memory) => memoryKey(memory) !== activeKey);
-    if (otherMemories.length === 0) {
+    const history = buildSameDateHistory(state.dayMemories, {
+        activeYear: state.selectedYear,
+        activeOwner: state.owner
+    });
+
+    if (history.comparisonMemories.length === 0) {
         elements.comparison.hidden = true;
         elements.comparisonPair.hidden = true;
         return;
     }
 
     elements.comparison.hidden = false;
-    const visibleMemories = otherMemories.slice(0, 6);
-    const selectedComparison = visibleMemories.find((memory) => memoryKey(memory) === state.selectedComparisonKey) || visibleMemories[0];
-    state.selectedComparisonKey = memoryKey(selectedComparison);
+    const selectedComparison = history.comparisonMemories.find((memory) => getMemoryKey(memory) === state.selectedComparisonKey) || history.defaultComparison;
+    state.selectedComparisonKey = getMemoryKey(selectedComparison);
 
-    visibleMemories.forEach((memory) => {
+    history.comparisonMemories.forEach((memory) => {
         const button = document.createElement('button');
         const image = document.createElement('img');
         const label = document.createElement('span');
-        const key = memoryKey(memory);
+        const key = getMemoryKey(memory);
         const ownerName = ownerLabel(memory.owner);
 
         button.type = 'button';
