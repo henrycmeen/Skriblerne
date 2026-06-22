@@ -130,6 +130,7 @@ button {
 .text-button,
 .nav-button,
 .add-photo-button,
+.replace-photo-button,
 .year-memory,
 .day-dot {
     border: 0;
@@ -163,6 +164,7 @@ button {
 .icon-button:focus-visible,
 .text-button:focus-visible,
 .add-photo-button:focus-visible,
+.replace-photo-button:focus-visible,
 .year-memory:focus-visible,
 .day-dot:focus-visible,
 .nav-button:focus-visible {
@@ -253,6 +255,19 @@ button {
 
 .add-photo-button:hover {
     background: var(--hover-bg);
+}
+
+.replace-photo-button {
+    color: var(--subtitle-color);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.35rem;
+}
+
+.replace-photo-button:hover {
+    color: var(--text-color);
 }
 
 .status-text {

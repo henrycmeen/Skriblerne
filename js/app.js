@@ -20,6 +20,7 @@ const elements = {
     emptyMemory: document.getElementById('emptyMemory'),
     photoFrame: document.getElementById('photoFrame'),
     addPhotoButton: document.getElementById('addPhotoButton'),
+    replacePhotoButton: document.getElementById('replacePhotoButton'),
     photoInput: document.getElementById('photoInput'),
     statusText: document.getElementById('statusText'),
     yearStrip: document.getElementById('yearStrip'),
@@ -140,6 +141,7 @@ function renderPhoto() {
         elements.currentImage.alt = `${state.currentMemory.word}, ${state.currentMemory.year}`;
         elements.currentImage.hidden = false;
         elements.emptyMemory.hidden = true;
+        elements.replacePhotoButton.hidden = false;
         elements.photoFrame.classList.add('photo-frame--filled');
         return;
     }
@@ -148,13 +150,18 @@ function renderPhoto() {
     elements.currentImage.alt = '';
     elements.currentImage.hidden = true;
     elements.emptyMemory.hidden = false;
+    elements.replacePhotoButton.hidden = true;
     elements.photoFrame.classList.remove('photo-frame--filled');
 }
 
 function renderYearStrip() {
     elements.yearStrip.replaceChildren();
 
-    if (state.dayMemories.length === 0) {
+    const memoriesToShow = state.dayMemories.filter((memory) => (
+        memory.year !== state.selectedYear || state.dayMemories.length > 1
+    ));
+
+    if (memoriesToShow.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'muted';
         empty.textContent = 'Ingen tidligere bilder på denne datoen.';
@@ -162,7 +169,7 @@ function renderYearStrip() {
         return;
     }
 
-    state.dayMemories.forEach((memory) => {
+    memoriesToShow.forEach((memory) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'year-memory';
@@ -326,6 +333,7 @@ function bindEvents() {
     elements.overviewPreviousYearButton.addEventListener('click', () => changeYear(-1));
     elements.overviewNextYearButton.addEventListener('click', () => changeYear(1));
     elements.addPhotoButton.addEventListener('click', () => elements.photoInput.click());
+    elements.replacePhotoButton.addEventListener('click', () => elements.photoInput.click());
     elements.photoFrame.addEventListener('click', (event) => {
         if (event.target === elements.photoFrame && state.currentMemory) {
             elements.photoInput.click();
