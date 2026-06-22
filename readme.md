@@ -67,7 +67,7 @@ SKRIBLERNE_EDIT_CODE=...
 4. Bruk filteret `Mangler meg`, `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
 5. Fyll ut `Nytt ord` for ord som skal byttes.
 6. Bruk `Eksporter gjennomgang` for å laste ned JSON.
-7. Bruk `Lagre felles` for å lagre gjennomgangen på Mac mini med lagringskoden.
+7. Bruk `Lagre felles` for å lagre gjennomgangen på Mac mini med lagringskoden. Lagring fletter inn lokale endringer og bevarer avhuking/forslag som allerede ligger felles.
 8. Bruk `Hent felles` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
 9. Bruk `Importer gjennomgang` / `Eksporter gjennomgang` som ekstra backup eller manuell overføring.
 

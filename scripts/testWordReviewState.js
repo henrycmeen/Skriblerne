@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const WordReview = require('../models/WordReview');
 const {
+    mergeReviewStates,
     sanitizeReview,
     sanitizeReviewState,
     serializeWordReview
@@ -73,6 +74,57 @@ assert.deepEqual(
             suggestedWord: 'Månespor',
             note: '',
             reviewers: { henry: true, ellinor: true }
+        }
+    }
+);
+
+assert.deepEqual(
+    mergeReviewStates(
+        {
+            '01-01': {
+                status: 'approved',
+                reviewers: { henry: true, ellinor: false }
+            },
+            '01-02': {
+                status: 'flagged',
+                suggestedWord: 'Vinterlys',
+                note: 'Ellinor vil se på denne',
+                reviewers: { henry: false, ellinor: true }
+            }
+        },
+        {
+            '01-01': {
+                reviewers: { ellinor: true }
+            },
+            '01-02': {
+                status: 'approved',
+                reviewers: { henry: true }
+            },
+            '01-03': {
+                status: 'flagged',
+                suggestedWord: 'Månespor',
+                reviewers: { henry: true }
+            }
+        }
+    ),
+    {
+        '01-01': {
+            status: 'approved',
+            suggestedWord: '',
+            note: '',
+            reviewers: { henry: true, ellinor: true }
+        },
+        '01-02': {
+            status: 'flagged',
+            suggestedWord: 'Vinterlys',
+            note: 'Ellinor vil se på denne',
+            reviewers: { henry: true, ellinor: true }
+        },
+        '01-03': {
+            status: 'flagged',
+            suggestedWord: 'Månespor',
+            note: '',
+            reviewers: { henry: true, ellinor: false }
         }
     }
 );

@@ -529,7 +529,7 @@ async function saveSharedReviewState() {
 
         replaceReviewState(imported.reviewState);
         render(currentWords);
-        setReviewStatus('Felles gjennomgang er lagret.', 'success');
+        setReviewStatus('Felles gjennomgang er lagret og flettet.', 'success');
     } catch (error) {
         console.error(error);
         setReviewStatus(error.message || 'Kunne ikke lagre felles gjennomgang.', 'error');

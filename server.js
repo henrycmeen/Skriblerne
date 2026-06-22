@@ -10,6 +10,7 @@ const {
     serializeMemory
 } = require('./lib/memorySerialization');
 const {
+    mergeReviewStates,
     sanitizeReviewState,
     serializeWordReview
 } = require('./lib/wordReviewState');
@@ -222,7 +223,9 @@ app.get('/api/word-review', async (_req, res) => {
 
 app.post('/api/word-review', requireEditCode, async (req, res) => {
     try {
-        const reviewState = sanitizeReviewState(req.body?.reviewState || req.body);
+        const incomingReviewState = sanitizeReviewState(req.body?.reviewState || req.body);
+        const currentReview = await WordReview.findOne({ key: 'shared' }).lean();
+        const reviewState = mergeReviewStates(currentReview?.reviewState || {}, incomingReviewState);
         const review = await WordReview.findOneAndUpdate(
             { key: 'shared' },
             { key: 'shared', reviewState },
