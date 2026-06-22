@@ -4,6 +4,11 @@ const mongoose = require('mongoose');
 const Memory = require('./models/Memory');
 const Word = require('./models/Word');
 const {
+    DEFAULT_OWNER,
+    OWNER_LABELS,
+    serializeMemory
+} = require('./lib/memorySerialization');
+const {
     WORD_CYCLE,
     formatDateForYear,
     getMonthDayFromDate,
@@ -15,11 +20,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 const MAX_IMAGE_DATA_LENGTH = 7_500_000;
 const EDIT_CODE_HEADER = 'x-skriblerne-edit-code';
-const DEFAULT_OWNER = 'henry';
-const OWNER_LABELS = {
-    henry: 'Henry',
-    ellinor: 'Ellinor'
-};
 const OWNER_KEYS = Object.keys(OWNER_LABELS);
 const ALLOWED_ORIGINS = new Set([
     'https://henrymeen.no',
@@ -93,30 +93,6 @@ function compareMemories(a, b) {
     }
 
     return ownerSortValue(a.owner) - ownerSortValue(b.owner);
-}
-
-function serializeMemory(memory, { includeImage = false } = {}) {
-    if (!memory) {
-        return null;
-    }
-
-    const owner = normalizeOwner(memory.owner) || DEFAULT_OWNER;
-
-    return {
-        id: memory._id,
-        year: memory.year,
-        monthDay: memory.monthDay,
-        owner,
-        ownerName: OWNER_LABELS[owner],
-        dayOfYear: memory.dayOfYear,
-        word: memory.word,
-        thumbnailData: memory.thumbnailData,
-        imageData: includeImage ? memory.imageData : undefined,
-        mimeType: memory.mimeType,
-        originalName: memory.originalName,
-        createdAt: memory.createdAt,
-        updatedAt: memory.updatedAt
-    };
 }
 
 function validateImagePayload({ imageData, thumbnailData, mimeType }) {
@@ -292,7 +268,7 @@ app.get('/api/memories/day/:monthDay', async (req, res) => {
 
         const memories = await Memory.find({ monthDay }).sort({ year: -1 }).lean();
         memories.sort(compareMemories);
-        res.json({ memories: memories.map((memory) => serializeMemory(memory, { includeImage: true })) });
+        res.json({ memories: memories.map((memory) => serializeMemory(memory)) });
     } catch (error) {
         console.error('Error fetching day memories:', error);
         res.status(500).json({ error: 'Kunne ikke hente tidligere år' });

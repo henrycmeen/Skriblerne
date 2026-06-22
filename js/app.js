@@ -17,6 +17,8 @@ const state = {
     calendar: null,
     currentMemory: null,
     dayMemories: [],
+    comparisonMemoryCache: new Map(),
+    comparisonLoadingKey: null,
     selectedComparisonKey: null,
     editCode: localStorage.getItem(EDIT_CODE_STORAGE_KEY) || ''
 };
@@ -139,6 +141,17 @@ function selectedDay() {
     return state.calendar?.days.find((day) => day.monthDay === state.selectedMonthDay) || null;
 }
 
+function cacheMemory(memory) {
+    if (memory?.imageData) {
+        state.comparisonMemoryCache.set(getMemoryKey(memory), memory);
+    }
+}
+
+function clearMemoryCaches() {
+    state.comparisonMemoryCache.clear();
+    state.comparisonLoadingKey = null;
+}
+
 async function fetchJson(path, options = {}) {
     const response = await fetch(`${API_BASE_URL}${path}`, {
         cache: 'no-store',
@@ -182,11 +195,37 @@ async function loadSelectedMemory() {
     const owner = encodeURIComponent(state.owner);
     const payload = await fetchJson(`/api/memory/${state.selectedYear}/${state.selectedMonthDay}?owner=${owner}`);
     state.currentMemory = payload.memory;
+    cacheMemory(payload.memory);
 }
 
 async function loadDayMemories() {
     const payload = await fetchJson(`/api/memories/day/${state.selectedMonthDay}`);
     state.dayMemories = payload.memories || [];
+}
+
+async function loadComparisonMemory(memory) {
+    const key = getMemoryKey(memory);
+    if (!key || state.comparisonMemoryCache.has(key) || state.comparisonLoadingKey === key) {
+        return;
+    }
+
+    state.comparisonLoadingKey = key;
+
+    try {
+        const owner = encodeURIComponent(memory.owner);
+        const payload = await fetchJson(`/api/memory/${memory.year}/${memory.monthDay}?owner=${owner}`);
+        cacheMemory(payload.memory);
+        if (state.selectedComparisonKey === key) {
+            renderComparison();
+        }
+    } catch (error) {
+        console.error(error);
+        setStatus(error.message, 'error');
+    } finally {
+        if (state.comparisonLoadingKey === key) {
+            state.comparisonLoadingKey = null;
+        }
+    }
 }
 
 async function refreshAll() {
@@ -353,15 +392,21 @@ function renderComparison() {
         elements.comparisonList.appendChild(button);
     });
 
-    if (!state.currentMemory?.imageData || !selectedComparison?.imageData) {
+    const selectedComparisonKey = getMemoryKey(selectedComparison);
+    const comparisonMemory = selectedComparison?.imageData
+        ? selectedComparison
+        : state.comparisonMemoryCache.get(selectedComparisonKey);
+
+    if (!state.currentMemory?.imageData || !comparisonMemory?.imageData) {
         elements.comparisonPair.hidden = true;
+        loadComparisonMemory(selectedComparison);
         return;
     }
 
     elements.comparisonPair.hidden = false;
     elements.comparisonPair.append(
         createComparisonFigure(state.currentMemory, 'Valgt'),
-        createComparisonFigure(selectedComparison, 'Mot')
+        createComparisonFigure(comparisonMemory, 'Mot')
     );
 }
 
@@ -458,6 +503,7 @@ function createDayDot(day) {
     }
 
     button.addEventListener('click', async () => {
+        clearMemoryCaches();
         state.selectedMonthDay = day.monthDay;
         state.view = 'today';
         state.selectedComparisonKey = null;
@@ -474,6 +520,7 @@ async function changeYear(offset) {
 }
 
 async function goToToday() {
+    clearMemoryCaches();
     state.selectedYear = today.getFullYear();
     state.selectedMonthDay = toMonthDay(today);
     state.view = 'today';
@@ -489,6 +536,7 @@ async function goToPickedDate(value) {
         return;
     }
 
+    clearMemoryCaches();
     state.selectedYear = pickedDate.year;
     state.selectedMonthDay = pickedDate.monthDay;
     state.view = 'today';

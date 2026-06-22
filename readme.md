@@ -19,6 +19,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay` + `owner` (`henry` eller `ellinor`).
 - `index.html`, `js/app.js` og `js/history-utils.mjs` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
+- Historikklisten for samme dato henter bare metadata og thumbnails; full `imageData` hentes først for valgt bilde via detaljendepunktet.
 - `ordliste.html`, `js/word-review.js` og `js/review-progress.mjs` brukes til manuell gjennomgang av alle 365 ordene.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
 - Ordgjennomgangen viser når eksporten er klar for `scripts/applyWordReview.js`.
