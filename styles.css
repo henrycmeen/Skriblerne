@@ -435,6 +435,57 @@ button {
     display: none;
 }
 
+.edit-code-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.edit-code-panel {
+    width: min(100%, 24rem);
+    display: grid;
+    gap: 1rem;
+    padding: 2rem;
+    border: 1px solid var(--soft-border);
+    border-radius: 8px;
+    background: var(--bg-color);
+}
+
+.edit-code-panel h2 {
+    font-family: "Crimson Text", Georgia, serif;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.edit-code-panel input {
+    min-height: 2.75rem;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+}
+
+.edit-code-panel input:focus {
+    outline: 0;
+    border-color: var(--text-color);
+}
+
+.edit-code-message {
+    min-height: 1.4rem;
+    color: var(--error-color);
+    font-size: 0.9375rem;
+}
+
+.edit-code-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
 .review-shell {
     width: min(100% - 2rem, 960px);
     min-height: 100vh;

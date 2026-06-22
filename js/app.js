@@ -1,13 +1,15 @@
 import { API_BASE_URL } from './config.js';
 
 const today = new Date();
+const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
 const state = {
     view: 'today',
     selectedYear: today.getFullYear(),
     selectedMonthDay: toMonthDay(today),
     calendar: null,
     currentMemory: null,
-    dayMemories: []
+    dayMemories: [],
+    editCode: localStorage.getItem(EDIT_CODE_STORAGE_KEY) || ''
 };
 
 const elements = {
@@ -33,8 +35,15 @@ const elements = {
     nextYearButton: document.getElementById('nextYearButton'),
     overviewPreviousYearButton: document.getElementById('overviewPreviousYearButton'),
     overviewNextYearButton: document.getElementById('overviewNextYearButton'),
+    editCodeDialog: document.getElementById('editCodeDialog'),
+    editCodeForm: document.getElementById('editCodeForm'),
+    editCodeInput: document.getElementById('editCodeInput'),
+    editCodeMessage: document.getElementById('editCodeMessage'),
+    cancelEditCodeButton: document.getElementById('cancelEditCodeButton'),
     navButtons: Array.from(document.querySelectorAll('[data-view]'))
 };
+
+let editCodeResolver = null;
 
 const dateFormatter = new Intl.DateTimeFormat('nb-NO', {
     weekday: 'long',
@@ -69,10 +78,28 @@ async function fetchJson(path, options = {}) {
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(payload.error || 'Noe gikk galt.');
+        const error = new Error(payload.error || 'Noe gikk galt.');
+        error.status = response.status;
+        throw error;
     }
 
     return payload;
+}
+
+function requestEditCode(message = '') {
+    return new Promise((resolve) => {
+        editCodeResolver = resolve;
+        elements.editCodeMessage.textContent = message;
+        elements.editCodeInput.value = state.editCode;
+        elements.editCodeDialog.hidden = false;
+        elements.editCodeInput.focus();
+    });
+}
+
+function resolveEditCode(code) {
+    elements.editCodeDialog.hidden = true;
+    editCodeResolver?.(code);
+    editCodeResolver = null;
 }
 
 async function loadCalendar(year = state.selectedYear) {
@@ -272,6 +299,14 @@ async function handlePhotoSelected(event) {
     }
 
     try {
+        if (!state.editCode) {
+            const code = await requestEditCode();
+            if (!code) {
+                setStatus('');
+                return;
+            }
+        }
+
         setStatus('Forbereder bilde.');
         const payload = await buildImagePayload(file);
         setStatus('Lagrer bilde.');
@@ -279,7 +314,8 @@ async function handlePhotoSelected(event) {
         const response = await fetchJson('/api/memories', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Skriblerne-Edit-Code': state.editCode
             },
             body: JSON.stringify({
                 year: state.selectedYear,
@@ -294,6 +330,10 @@ async function handlePhotoSelected(event) {
         setStatus('Bildet er lagret.', 'success');
     } catch (error) {
         console.error(error);
+        if (error.status === 401) {
+            state.editCode = '';
+            localStorage.removeItem(EDIT_CODE_STORAGE_KEY);
+        }
         setStatus(error.message, 'error');
     } finally {
         event.target.value = '';
@@ -340,6 +380,18 @@ function bindEvents() {
         }
     });
     elements.photoInput.addEventListener('change', handlePhotoSelected);
+    elements.editCodeForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const code = elements.editCodeInput.value.trim();
+        if (!code) {
+            elements.editCodeMessage.textContent = 'Skriv inn kode.';
+            return;
+        }
+        state.editCode = code;
+        localStorage.setItem(EDIT_CODE_STORAGE_KEY, code);
+        resolveEditCode(code);
+    });
+    elements.cancelEditCodeButton.addEventListener('click', () => resolveEditCode(null));
     elements.navButtons.forEach((button) => {
         button.addEventListener('click', () => switchView(button.dataset.view));
     });

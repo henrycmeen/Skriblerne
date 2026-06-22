@@ -14,6 +14,7 @@ const {
 const app = express();
 const port = process.env.PORT || 3000;
 const MAX_IMAGE_DATA_LENGTH = 7_500_000;
+const EDIT_CODE_HEADER = 'x-skriblerne-edit-code';
 const ALLOWED_ORIGINS = new Set([
     'https://henrymeen.no',
     'https://www.henrymeen.no',
@@ -32,7 +33,7 @@ app.use((req, res, next) => {
     if (ALLOWED_ORIGINS.has(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Vary', 'Origin');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Access-Control-Allow-Headers', `Content-Type, ${EDIT_CODE_HEADER}`);
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
     }
 
@@ -101,6 +102,20 @@ function validateImagePayload({ imageData, thumbnailData, mimeType }) {
     }
 
     return null;
+}
+
+function requireEditCode(req, res, next) {
+    const configuredCode = process.env.SKRIBLERNE_EDIT_CODE;
+
+    if (!configuredCode) {
+        return res.status(503).json({ error: 'Bildeopplasting er ikke aktivert.' });
+    }
+
+    if (req.get(EDIT_CODE_HEADER) !== configuredCode) {
+        return res.status(401).json({ error: 'Feil lagringskode.' });
+    }
+
+    next();
 }
 
 async function dropLegacyWordIndexes() {
@@ -209,7 +224,7 @@ app.get('/api/memories/day/:monthDay', async (req, res) => {
     }
 });
 
-app.post('/api/memories', async (req, res) => {
+app.post('/api/memories', requireEditCode, async (req, res) => {
     try {
         const year = normalizeYear(req.body.year);
         const { monthDay, imageData, thumbnailData, mimeType, originalName = '' } = req.body;
