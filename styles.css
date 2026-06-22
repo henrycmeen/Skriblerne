@@ -582,7 +582,7 @@ button {
 
 .review-controls {
     display: grid;
-    grid-template-columns: auto auto minmax(12rem, 1fr);
+    grid-template-columns: auto auto minmax(9rem, 0.8fr) minmax(12rem, 1.2fr);
     gap: 1rem;
     align-items: center;
 }
@@ -603,7 +603,8 @@ button {
     accent-color: var(--text-color);
 }
 
-.review-note {
+.review-note,
+.review-suggested-word {
     width: 100%;
     min-height: 2.5rem;
     border: 0;
@@ -612,11 +613,13 @@ button {
     color: var(--text-color);
 }
 
-.review-note::placeholder {
+.review-note::placeholder,
+.review-suggested-word::placeholder {
     color: var(--subtitle-color);
 }
 
-.review-note:focus {
+.review-note:focus,
+.review-suggested-word:focus {
     outline: 0;
     border-color: var(--text-color);
 }

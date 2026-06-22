@@ -4,6 +4,7 @@ const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const reviewState = loadReviewState();
+let currentWords = [];
 
 const elements = {
     months: document.getElementById('reviewMonths'),
@@ -41,6 +42,7 @@ function groupByMonth(words) {
 }
 
 function render(words) {
+    currentWords = words;
     elements.months.replaceChildren();
 
     groupByMonth(words).forEach((monthWords, month) => {
@@ -109,7 +111,7 @@ function renderWordRow(entry) {
             status: event.target.checked ? 'approved' : ''
         };
         saveReviewState();
-        updateSummaryFromDom();
+        updateSummary(currentWords);
     });
 
     flaggedInput.addEventListener('change', (event) => {
@@ -121,7 +123,22 @@ function renderWordRow(entry) {
             status: event.target.checked ? 'flagged' : ''
         };
         saveReviewState();
-        updateSummaryFromDom();
+        updateSummary(currentWords);
+    });
+
+    const suggestedWord = document.createElement('input');
+    suggestedWord.className = 'review-suggested-word';
+    suggestedWord.type = 'text';
+    suggestedWord.placeholder = 'Nytt ord';
+    suggestedWord.value = review.suggestedWord || '';
+    suggestedWord.setAttribute('aria-label', `Nytt ord for ${entry.word}`);
+    suggestedWord.addEventListener('input', (event) => {
+        reviewState[entry.monthDay] = {
+            ...reviewState[entry.monthDay],
+            suggestedWord: event.target.value
+        };
+        saveReviewState();
+        updateSummary(currentWords);
     });
 
     const note = document.createElement('input');
@@ -138,31 +155,71 @@ function renderWordRow(entry) {
         saveReviewState();
     });
 
-    controls.append(approvedLabel, flaggedLabel, note);
+    controls.append(approvedLabel, flaggedLabel, suggestedWord, note);
     row.append(heading, controls);
     return row;
 }
 
 function updateSummary(words) {
-    const reviewed = words.filter((word) => reviewState[word.monthDay]?.status).length;
-    const flagged = words.filter((word) => reviewState[word.monthDay]?.status === 'flagged').length;
-    elements.summary.textContent = `${reviewed} av ${words.length} ord er markert. ${flagged} ord er merket for ny vurdering.`;
+    const stats = getReviewStats(words);
+    elements.summary.textContent = [
+        `${stats.reviewed} av ${words.length} ord er markert.`,
+        `${stats.flagged} ord er merket for ny vurdering.`,
+        `${stats.suggested} ${stats.suggested === 1 ? 'nytt ord er' : 'nye ord er'} foreslått.`,
+        stats.duplicateCount > 0
+            ? `${stats.duplicateCount} ${stats.duplicateCount === 1 ? 'duplikat må' : 'duplikater må'} løses.`
+            : 'Ingen duplikater i forslagene.'
+    ].join(' ');
 }
 
-function updateSummaryFromDom() {
-    const rows = Array.from(document.querySelectorAll('.review-word-row'));
-    const reviewed = rows.filter((row) => row.querySelector('input[type="checkbox"]:checked')).length;
-    const flagged = rows.filter((row) => row.querySelectorAll('input[type="checkbox"]')[1]?.checked).length;
-    elements.summary.textContent = `${reviewed} av ${rows.length} ord er markert. ${flagged} ord er merket for ny vurdering.`;
+function getReviewStats(words) {
+    const finalWords = new Map();
+    let reviewed = 0;
+    let flagged = 0;
+    let suggested = 0;
+    let duplicateCount = 0;
+
+    words.forEach((word) => {
+        const review = reviewState[word.monthDay] || {};
+        const suggestedWord = normalizeWord(review.suggestedWord);
+        const originalWord = normalizeWord(word.word);
+        const finalWord = suggestedWord || originalWord;
+
+        if (review.status) {
+            reviewed += 1;
+        }
+        if (review.status === 'flagged') {
+            flagged += 1;
+        }
+        if (suggestedWord && suggestedWord !== originalWord) {
+            suggested += 1;
+        }
+        if (finalWords.has(finalWord)) {
+            duplicateCount += 1;
+        }
+        finalWords.set(finalWord, word.monthDay);
+    });
+
+    return { duplicateCount, flagged, reviewed, suggested };
+}
+
+function normalizeWord(word) {
+    return String(word || '').trim().toLocaleLowerCase('nb-NO');
 }
 
 function exportReview(words) {
     const reviewedAt = new Date().toISOString();
+    const stats = getReviewStats(words);
     const payload = words.map((word) => ({
         ...word,
-        review: reviewState[word.monthDay] || { status: '', note: '' }
+        review: {
+            status: '',
+            suggestedWord: '',
+            note: '',
+            ...(reviewState[word.monthDay] || {})
+        }
     }));
-    const blob = new Blob([JSON.stringify({ reviewedAt, words: payload }, null, 2)], {
+    const blob = new Blob([JSON.stringify({ reviewedAt, stats, words: payload }, null, 2)], {
         type: 'application/json'
     });
     const link = document.createElement('a');
