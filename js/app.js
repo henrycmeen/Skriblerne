@@ -7,7 +7,7 @@ import {
     getMemoryKey,
     normalizeOwner,
     pickVisibleOwnerForDay
-} from './history-utils.mjs?v=20260622-23';
+} from './history-utils.mjs?v=20260622-24';
 import {
     findOwnMemory,
     formatPhotoActionLabel,
@@ -394,19 +394,19 @@ function renderDayOwnerStrip() {
 
     buildSameDayOwnerOptions(state.dayMemories, {
         activeOwner: state.owner,
+        signedInOwner: state.signedInOwner,
         monthDay: state.selectedMonthDay,
         year: state.selectedYear
     }).forEach((option) => {
         const button = document.createElement('button');
         const label = document.createElement('span');
         const status = document.createElement('span');
-        const canSelect = option.hasMemory || option.owner === state.signedInOwner;
 
         button.type = 'button';
         button.className = 'day-owner-button';
         button.classList.toggle('day-owner-button--active', option.isActive);
         button.classList.toggle('day-owner-button--filled', option.hasMemory);
-        button.disabled = !canSelect;
+        button.disabled = !option.canSelect;
         button.setAttribute('aria-pressed', String(option.isActive));
         button.setAttribute(
             'aria-label',

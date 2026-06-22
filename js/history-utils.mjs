@@ -62,13 +62,14 @@ export function buildSameDateHistory(memories, { activeYear, activeOwner }) {
     };
 }
 
-export function buildSameDayOwnerOptions(memories = [], { activeOwner, monthDay, year }) {
+export function buildSameDayOwnerOptions(memories = [], { activeOwner, signedInOwner = activeOwner, monthDay, year }) {
     const memoriesByOwner = new Map(
         memories
             .filter((memory) => memory.year === year && memory.monthDay === monthDay)
             .map((memory) => [normalizeOwner(memory.owner), memory])
     );
     const normalizedActiveOwner = normalizeOwner(activeOwner);
+    const normalizedSignedInOwner = normalizeOwner(signedInOwner);
 
     return OWNER_KEYS.map((owner) => {
         const memory = memoriesByOwner.get(owner) || null;
@@ -77,6 +78,7 @@ export function buildSameDayOwnerOptions(memories = [], { activeOwner, monthDay,
             owner,
             label: OWNER_LABELS[owner],
             hasMemory: Boolean(memory),
+            canSelect: Boolean(memory) || owner === normalizedSignedInOwner,
             isActive: owner === normalizedActiveOwner,
             memory
         };

@@ -80,6 +80,7 @@ assert.deepEqual(
         { year: 2026, monthDay: '06-23', owner: 'henry' }
     ], {
         activeOwner: 'ellinor',
+        signedInOwner: 'henry',
         monthDay: '06-22',
         year: 2026
     }),
@@ -88,6 +89,7 @@ assert.deepEqual(
             owner: 'henry',
             label: 'Henry',
             hasMemory: true,
+            canSelect: true,
             isActive: false,
             memory: { year: 2026, monthDay: '06-22', owner: 'henry' }
         },
@@ -95,6 +97,7 @@ assert.deepEqual(
             owner: 'ellinor',
             label: 'Ellinor',
             hasMemory: true,
+            canSelect: true,
             isActive: true,
             memory: { year: 2026, monthDay: '06-22', owner: 'ellinor' }
         }
@@ -104,12 +107,13 @@ assert.deepEqual(
 assert.deepEqual(
     buildSameDayOwnerOptions([], {
         activeOwner: 'henry',
+        signedInOwner: 'henry',
         monthDay: '06-22',
         year: 2026
-    }).map(({ owner, hasMemory, isActive, memory }) => ({ owner, hasMemory, isActive, memory })),
+    }).map(({ owner, hasMemory, canSelect, isActive, memory }) => ({ owner, hasMemory, canSelect, isActive, memory })),
     [
-        { owner: 'henry', hasMemory: false, isActive: true, memory: null },
-        { owner: 'ellinor', hasMemory: false, isActive: false, memory: null }
+        { owner: 'henry', hasMemory: false, canSelect: true, isActive: true, memory: null },
+        { owner: 'ellinor', hasMemory: false, canSelect: false, isActive: false, memory: null }
     ]
 );
 assert.equal(
