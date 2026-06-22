@@ -4,6 +4,7 @@ const path = require('node:path');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const script = fs.readFileSync(path.join(__dirname, '..', 'js', 'app.js'), 'utf8');
+const styles = fs.readFileSync(path.join(__dirname, '..', 'styles.css'), 'utf8');
 
 function getInputTag(id) {
     const match = new RegExp(`<input[^>]+id="${id}"[^>]*>`).exec(html);
@@ -28,11 +29,12 @@ assert.match(html, /Prikker: bare Henry 0, bare Ellinor 0, begge 0\./);
 assert.match(html, /id="loginDialog"/);
 assert.match(html, /data-login-owner="henry"/);
 assert.match(html, /data-login-owner="ellinor"/);
-assert.match(html, /styles\.css\?v=20260622-21/);
+assert.match(html, /styles\.css\?v=20260622-22/);
 assert.match(html, /js\/app\.js\?v=20260622-23/);
 assert.match(script, /overview-utils\.mjs\?v=20260622-21/);
 assert.match(script, /history-utils\.mjs\?v=20260622-22/);
 assert.match(script, /buildOverviewLegend/);
 assert.match(script, /pickVisibleOwnerForDay/);
+assert.match(styles, /\.photo-frame\s*{[^}]*min-height:\s*clamp\(14rem,\s*38vh,\s*25rem\);/s);
 
 console.log('Validated separate photo source inputs.');

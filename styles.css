@@ -347,7 +347,7 @@ button {
 
 .photo-frame {
     width: min(100%, 720px);
-    min-height: 6.5rem;
+    min-height: clamp(14rem, 38vh, 25rem);
     display: grid;
     place-items: center;
     overflow: hidden;
