@@ -5,11 +5,13 @@ Skriblerne is a Norwegian drawing game where players get a new word to draw ever
 ## Project Architecture
 
 The project is split into two main repositories:
-1. Main Repository (This repo) - Frontend and Backend Server
-2. [Skriblerne-API](https://github.com/henrycmeen/skriblerne-api) - Deployed on Vercel
+1. Main Repository (This repo) - Frontend and backend server
+2. [Skriblerne-API](https://github.com/henrycmeen/skriblerne-api) - Legacy Vercel API fallback
 
-### Frontend (GitHub Pages)
-- Static files hosted on GitHub Pages
+### Frontend
+- Primary production URL: https://henrymeen.no/skriblerne/
+- Static files are served by Caddy on the Mac mini
+- GitHub Pages remains available as a legacy fallback
 - Built with vanilla HTML/CSS/JavaScript using ES6 modules
 - Communicates with the backend API via fetch requests
 - Features:
@@ -17,14 +19,16 @@ The project is split into two main repositories:
   - Random word generator
   - Admin interface for word management
 
-### Backend (Vercel)
+### Backend
 - Node.js/Express server
 - MongoDB Atlas integration for data persistence
+- Primary production host: Mac mini behind Caddy and Cloudflare Tunnel
 - RESTful API endpoints:
   - GET /api/word/today - Fetches today's word
   - GET /api/word/random - Gets a random word
   - GET /api/words - Lists all words
   - POST /api/word - Adds a new word
+  - POST /api/words - Adds a new word
 
 ### Database (MongoDB Atlas)
 - Cloud-hosted MongoDB database
@@ -86,17 +90,18 @@ Skriblerne/
 ## Deployment
 
 ### Frontend
-- Automatically deploys to GitHub Pages when changes are pushed to the main branch
-- Configuration in .github/workflows/
+- Static files are copied to `/Users/henrymeen/srv/www/henrymeen/skriblerne` on the Mac mini.
+- Caddy serves the app under `/skriblerne`.
 
 ### Backend
-- Deployed on Vercel
-- Automatically deploys when changes are pushed to the main branch
+- Runs from `/Users/henrymeen/srv/apps/skriblerne/repo` on the Mac mini.
+- Managed by `~/Library/LaunchAgents/com.henrymeen.skriblerne.plist`.
+- Caddy proxies `/skriblerne/api/*` to the local Node process.
 - Connected to MongoDB Atlas for data persistence
 
 ## API Integration
 
-The frontend communicates with the backend through the API endpoints defined in js/config.js. The base URL is configured to point to the Vercel-hosted API in production.
+The frontend communicates with the backend through the API endpoints defined in `js/config.js`. Requests from `henrymeen.no/skriblerne` use the Mac mini backend. Other locations still use the Vercel-hosted API fallback.
 
 ## Database Management
 

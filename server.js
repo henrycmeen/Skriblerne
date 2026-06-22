@@ -16,6 +16,10 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use(express.static(__dirname));
 app.use(express.json());
 
+app.get('/healthz', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 // Get today's word
 app.get('/api/word/today', async (req, res) => {
     try {
@@ -29,17 +33,13 @@ app.get('/api/word/today', async (req, res) => {
             }
         });
         
-        if (!word) {
-            return res.status(404).json({ error: 'No word found for today' });
-        }
-        res.json(word);
+        res.json(word || { word: 'Ingen ord i dag' });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Add new word
-app.post('/api/word', async (req, res) => {
+async function addWord(req, res) {
     try {
         // Check for duplicate word
         const existingWord = await Word.findOne({ word: req.body.word.toUpperCase() });
@@ -63,14 +63,16 @@ app.post('/api/word', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Could not add word' });
     }
-});
+}
+
+// Add new word
+app.post('/api/word', addWord);
+app.post('/api/words', addWord);
 
 // Get all words - add more error handling and logging
 app.get('/api/words', async (req, res) => {
     try {
-        console.log('Fetching all words...');
         const words = await Word.find().sort({ date: 1 });
-        console.log('Found words:', words);
         res.json(words);
     } catch (error) {
         console.error('Error fetching words:', error);
