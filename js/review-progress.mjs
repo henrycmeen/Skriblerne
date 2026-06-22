@@ -37,6 +37,13 @@ export function markReviewer(review = {}, reviewer) {
     };
 }
 
+export function approveReviewForReviewer(review = {}, reviewer) {
+    return markReviewer({
+        ...review,
+        status: 'approved'
+    }, reviewer);
+}
+
 function normalizeReview(review = {}) {
     const status = ['approved', 'flagged'].includes(review?.status) ? review.status : '';
     const suggestedWord = normalizeReviewWord(review.suggestedWord);

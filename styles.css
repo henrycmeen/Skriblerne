@@ -835,7 +835,8 @@ button {
 }
 
 .review-filter-button,
-.review-next-button {
+.review-next-button,
+.review-quick-approve {
     min-height: 2.35rem;
     padding: 0 0.15rem;
     border: 0;
@@ -847,7 +848,8 @@ button {
 }
 
 .review-filter-button:hover,
-.review-next-button:hover {
+.review-next-button:hover,
+.review-quick-approve:hover {
     color: var(--text-color);
 }
 
@@ -862,6 +864,17 @@ button {
 }
 
 .review-next-button:disabled {
+    color: var(--subtitle-color);
+    cursor: default;
+}
+
+.review-quick-approve {
+    justify-self: start;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.review-quick-approve:disabled {
     color: var(--subtitle-color);
     cursor: default;
 }
@@ -930,7 +943,7 @@ button {
 
 .review-controls {
     display: grid;
-    grid-template-columns: auto auto minmax(9rem, 0.8fr) minmax(12rem, 1.2fr);
+    grid-template-columns: auto auto auto minmax(9rem, 0.8fr) minmax(12rem, 1.2fr);
     gap: 0.85rem;
     align-items: center;
 }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+    approveReviewForReviewer,
     buildReviewSyncStatus,
     buildMonthProgress,
     hasRequiredReviewers,
@@ -41,6 +42,21 @@ assert.deepEqual(
 assert.deepEqual(
     markReviewer({ status: 'approved', reviewers: { ellinor: true } }, 'unknown'),
     { status: 'approved', reviewers: { henry: false, ellinor: true } }
+);
+assert.deepEqual(
+    approveReviewForReviewer({ reviewers: { ellinor: true } }, 'henry'),
+    {
+        status: 'approved',
+        reviewers: { henry: true, ellinor: true }
+    }
+);
+assert.deepEqual(
+    approveReviewForReviewer({ status: 'flagged', suggestedWord: 'Vintersti', reviewers: { henry: true } }, 'ellinor'),
+    {
+        status: 'approved',
+        suggestedWord: 'Vintersti',
+        reviewers: { henry: true, ellinor: true }
+    }
 );
 assert.deepEqual(
     mergeReviewStates(

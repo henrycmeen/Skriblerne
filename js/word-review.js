@@ -6,6 +6,7 @@ import {
     readStoredIdentity
 } from './identity-utils.mjs';
 import {
+    approveReviewForReviewer,
     buildReviewSyncStatus,
     buildMonthProgress,
     hasRequiredReviewers,
@@ -16,7 +17,7 @@ import {
     needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260622-25';
+} from './review-progress.mjs?v=20260622-26';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -274,6 +275,7 @@ function render(words) {
 function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
     const reviewers = normalizeReviewers(review.reviewers);
+    const activeReviewerHasApproved = review.status === 'approved' && reviewers[activeReviewer];
     const row = document.createElement('article');
     row.className = 'review-word-row';
     row.dataset.monthDay = entry.monthDay;
@@ -304,6 +306,15 @@ function renderWordRow(entry) {
     `;
     const flaggedInput = flaggedLabel.querySelector('input');
 
+    const quickApproveButton = document.createElement('button');
+    quickApproveButton.type = 'button';
+    quickApproveButton.className = 'review-quick-approve';
+    quickApproveButton.disabled = activeReviewerHasApproved;
+    quickApproveButton.textContent = activeReviewerHasApproved
+        ? `OK av ${OWNER_LABELS[activeReviewer]}`
+        : `OK som ${OWNER_LABELS[activeReviewer]}`;
+    quickApproveButton.setAttribute('aria-label', `Godkjenn ${entry.word} som ${OWNER_LABELS[activeReviewer]}`);
+
     const reviewerGroup = document.createElement('div');
     reviewerGroup.className = 'review-reviewers';
     reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${entry.word}`);
@@ -330,6 +341,16 @@ function renderWordRow(entry) {
         });
 
         reviewerGroup.appendChild(reviewerLabel);
+    });
+
+    quickApproveButton.addEventListener('click', () => {
+        setReview(entry.monthDay, approveReviewForReviewer(reviewState[entry.monthDay], activeReviewer));
+        approvedInput.checked = true;
+        flaggedInput.checked = false;
+        quickApproveButton.disabled = true;
+        quickApproveButton.textContent = `OK av ${OWNER_LABELS[activeReviewer]}`;
+        syncReviewerInputs(reviewerGroup, entry.monthDay);
+        updateReviewProgress();
     });
 
     approvedInput.addEventListener('change', (event) => {
@@ -386,7 +407,7 @@ function renderWordRow(entry) {
         updateReviewProgress();
     });
 
-    controls.append(approvedLabel, flaggedLabel, suggestedWord, note, reviewerGroup);
+    controls.append(approvedLabel, flaggedLabel, quickApproveButton, suggestedWord, note, reviewerGroup);
     row.append(heading, controls);
     return row;
 }
