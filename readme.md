@@ -20,6 +20,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay`.
 - `index.html` og `js/app.js` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
 - `ordliste.html` og `js/word-review.js` brukes til manuell gjennomgang av alle 365 ordene.
+- Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
 
 ## Funksjoner
 
@@ -56,9 +57,10 @@ SKRIBLERNE_EDIT_CODE=...
 
 1. Åpne `ordliste.html`.
 2. Marker hvert ord som `OK` eller `Se på`.
-3. Fyll ut `Nytt ord` for ord som skal byttes.
-4. Bruk `Eksporter gjennomgang` for å laste ned JSON.
-5. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
+3. Bruk filteret `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
+4. Fyll ut `Nytt ord` for ord som skal byttes.
+5. Bruk `Eksporter gjennomgang` for å laste ned JSON.
+6. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
 
 Når hele listen er gjennomgått, kan review-filen valideres uten å endre repoet:
 

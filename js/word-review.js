@@ -1,9 +1,12 @@
 import { API_BASE_URL } from './config.js';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
+const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
+const REVIEW_FILTERS = new Set(['all', 'open', 'flagged', 'suggested']);
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const reviewState = loadReviewState();
+let activeFilter = loadReviewFilter();
 let currentWords = [];
 
 const elements = {
@@ -12,7 +15,9 @@ const elements = {
     status: document.getElementById('reviewStatus'),
     importButton: document.getElementById('importReviewButton'),
     importInput: document.getElementById('importReviewInput'),
-    exportButton: document.getElementById('exportReviewButton')
+    exportButton: document.getElementById('exportReviewButton'),
+    filterButtons: Array.from(document.querySelectorAll('[data-review-filter]')),
+    nextOpenButton: document.getElementById('nextOpenButton')
 };
 
 function loadReviewState() {
@@ -25,6 +30,15 @@ function loadReviewState() {
 
 function saveReviewState() {
     localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(reviewState));
+}
+
+function loadReviewFilter() {
+    const storedFilter = localStorage.getItem(REVIEW_FILTER_STORAGE_KEY);
+    return REVIEW_FILTERS.has(storedFilter) ? storedFilter : 'all';
+}
+
+function saveReviewFilter() {
+    localStorage.setItem(REVIEW_FILTER_STORAGE_KEY, activeFilter);
 }
 
 function replaceReviewState(nextState) {
@@ -78,8 +92,11 @@ function render(words) {
     });
 
     updateSummary(words);
+    updateFilterControls(words);
+    applyReviewFilter();
     elements.importButton.disabled = false;
     elements.exportButton.disabled = false;
+    elements.nextOpenButton.disabled = false;
     elements.exportButton.onclick = () => exportReview(words);
 }
 
@@ -87,6 +104,7 @@ function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
     const row = document.createElement('article');
     row.className = 'review-word-row';
+    row.dataset.monthDay = entry.monthDay;
 
     const heading = document.createElement('div');
     heading.className = 'review-word-heading';
@@ -124,6 +142,8 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateFilterControls(currentWords);
+        applyReviewFilter();
     });
 
     flaggedInput.addEventListener('change', (event) => {
@@ -136,6 +156,8 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateFilterControls(currentWords);
+        applyReviewFilter();
     });
 
     const suggestedWord = document.createElement('input');
@@ -151,6 +173,8 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateFilterControls(currentWords);
+        applyReviewFilter();
     });
 
     const note = document.createElement('input');
@@ -174,14 +198,35 @@ function renderWordRow(entry) {
 
 function updateSummary(words) {
     const stats = getReviewStats(words);
+    const filteredCount = countFilteredWords(words);
     elements.summary.textContent = [
         `${stats.reviewed} av ${words.length} ord er markert.`,
         `${stats.flagged} ord er merket for ny vurdering.`,
         `${stats.suggested} ${stats.suggested === 1 ? 'nytt ord er' : 'nye ord er'} foreslått.`,
         stats.duplicateCount > 0
             ? `${stats.duplicateCount} ${stats.duplicateCount === 1 ? 'duplikat må' : 'duplikater må'} løses.`
-            : 'Ingen duplikater i forslagene.'
-    ].join(' ');
+            : 'Ingen duplikater i forslagene.',
+        activeFilter === 'all'
+            ? ''
+            : `Filteret viser ${filteredCount} ${filteredCount === 1 ? 'ord' : 'ord'}.`
+    ].filter(Boolean).join(' ');
+}
+
+function updateFilterControls(words) {
+    const stats = getReviewStats(words);
+    const labels = {
+        all: `Alle ${words.length}`,
+        open: `Uavklarte ${stats.open}`,
+        flagged: `Se på ${stats.flagged}`,
+        suggested: `Forslag ${stats.suggested}`
+    };
+
+    elements.filterButtons.forEach((button) => {
+        const isActive = button.dataset.reviewFilter === activeFilter;
+        button.textContent = labels[button.dataset.reviewFilter] || button.textContent;
+        button.classList.toggle('review-filter-button--active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
 }
 
 function setReviewStatus(message, tone = 'neutral') {
@@ -193,6 +238,7 @@ function getReviewStats(words) {
     const finalWords = new Map();
     let reviewed = 0;
     let flagged = 0;
+    let open = 0;
     let suggested = 0;
     let duplicateCount = 0;
 
@@ -204,6 +250,9 @@ function getReviewStats(words) {
 
         if (review.status) {
             reviewed += 1;
+        }
+        if (!review.status || (review.status === 'flagged' && !suggestedWord)) {
+            open += 1;
         }
         if (review.status === 'flagged') {
             flagged += 1;
@@ -217,11 +266,88 @@ function getReviewStats(words) {
         finalWords.set(finalWord, word.monthDay);
     });
 
-    return { duplicateCount, flagged, reviewed, suggested };
+    return {
+        duplicateCount,
+        flagged,
+        open,
+        reviewed,
+        suggested
+    };
 }
 
 function normalizeWord(word) {
     return String(word || '').trim().toLocaleLowerCase('nb-NO');
+}
+
+function countFilteredWords(words) {
+    return words.filter((word) => matchesReviewFilter(word)).length;
+}
+
+function matchesReviewFilter(word, filter = activeFilter) {
+    const review = reviewState[word.monthDay] || {};
+    const suggestedWord = normalizeWord(review.suggestedWord);
+    const originalWord = normalizeWord(word.word);
+
+    if (filter === 'open') {
+        return !review.status || (review.status === 'flagged' && !suggestedWord);
+    }
+
+    if (filter === 'flagged') {
+        return review.status === 'flagged';
+    }
+
+    if (filter === 'suggested') {
+        return Boolean(suggestedWord && suggestedWord !== originalWord);
+    }
+
+    return true;
+}
+
+function applyReviewFilter() {
+    const wordsByMonthDay = new Map(currentWords.map((word) => [word.monthDay, word]));
+
+    document.querySelectorAll('.review-month').forEach((section) => {
+        let hasVisibleRows = false;
+
+        section.querySelectorAll('.review-word-row').forEach((row) => {
+            const word = wordsByMonthDay.get(row.dataset.monthDay);
+            const isVisible = word ? matchesReviewFilter(word) : true;
+            row.hidden = !isVisible;
+            hasVisibleRows ||= isVisible;
+        });
+
+        section.hidden = !hasVisibleRows;
+    });
+}
+
+function setActiveFilter(filter) {
+    if (!REVIEW_FILTERS.has(filter)) {
+        return;
+    }
+
+    activeFilter = filter;
+    saveReviewFilter();
+    updateSummary(currentWords);
+    updateFilterControls(currentWords);
+    applyReviewFilter();
+}
+
+function goToNextOpenWord() {
+    const nextOpenWord = currentWords.find((word) => matchesReviewFilter(word, 'open'));
+
+    if (!nextOpenWord) {
+        setReviewStatus('Alle ord er markert og flaggede ord har forslag.', 'success');
+        return;
+    }
+
+    setActiveFilter('open');
+    requestAnimationFrame(() => {
+        const row = document.querySelector(`[data-month-day="${nextOpenWord.monthDay}"]`);
+        row?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        row?.classList.add('review-word-row--focus');
+        row?.querySelector('input')?.focus({ preventScroll: true });
+        window.setTimeout(() => row?.classList.remove('review-word-row--focus'), 1600);
+    });
 }
 
 function exportReview(words) {
@@ -321,6 +447,10 @@ function sanitizeReview(review) {
 
 elements.importButton.addEventListener('click', () => elements.importInput.click());
 elements.importInput.addEventListener('change', handleImportSelected);
+elements.nextOpenButton.addEventListener('click', goToNextOpenWord);
+elements.filterButtons.forEach((button) => {
+    button.addEventListener('click', () => setActiveFilter(button.dataset.reviewFilter));
+});
 
 fetchWords()
     .then(render)

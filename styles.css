@@ -184,7 +184,9 @@ button {
 .comparison-item:focus-visible,
 .day-dot:focus-visible,
 .nav-button:focus-visible,
-.review-export-button:focus-visible {
+.review-export-button:focus-visible,
+.review-filter-button:focus-visible,
+.review-next-button:focus-visible {
     outline: 2px solid var(--text-color);
     outline-offset: 4px;
 }
@@ -590,6 +592,13 @@ button {
     gap: 0.75rem;
 }
 
+.review-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.8rem;
+}
+
 .review-export-button {
     min-height: 2.75rem;
     padding: 0 1rem;
@@ -608,6 +617,38 @@ button {
 
 .review-export-button:not(:disabled):hover {
     background: var(--hover-bg);
+}
+
+.review-filter-button,
+.review-next-button {
+    min-height: 2.35rem;
+    padding: 0 0.15rem;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.review-filter-button:hover,
+.review-next-button:hover {
+    color: var(--text-color);
+}
+
+.review-filter-button--active {
+    border-bottom-color: var(--text-color);
+    color: var(--text-color);
+}
+
+.review-next-button {
+    margin-left: 0.45rem;
+    color: var(--text-color);
+}
+
+.review-next-button:disabled {
+    color: var(--subtitle-color);
+    cursor: default;
 }
 
 .review-status {
@@ -652,6 +693,10 @@ button {
     align-items: center;
     padding: 0.85rem 0;
     border-bottom: 1px solid var(--soft-border);
+}
+
+.review-word-row--focus {
+    background: var(--hover-bg);
 }
 
 .review-word-heading {
@@ -802,6 +847,11 @@ button {
 
     .review-word-row {
         gap: 0.75rem;
+    }
+
+    .review-next-button {
+        flex-basis: 100%;
+        margin-left: 0;
     }
 }
 

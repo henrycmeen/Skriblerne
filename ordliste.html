@@ -6,7 +6,7 @@
     <meta name="description" content="Skriblerne - gjennomgang av 365 faste ord">
     <title>Ordlisten - Skriblerne</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-6">
+    <link rel="stylesheet" href="styles.css?v=20260622-8">
 </head>
 <body>
     <div class="review-shell">
@@ -29,6 +29,13 @@
                     <button class="review-export-button" id="importReviewButton" type="button" disabled>Importer gjennomgang</button>
                     <button class="review-export-button" id="exportReviewButton" type="button" disabled>Eksporter gjennomgang</button>
                 </div>
+                <div class="review-filter-bar" aria-label="Filtrer ordlisten">
+                    <button class="review-filter-button" type="button" data-review-filter="all" aria-pressed="true">Alle</button>
+                    <button class="review-filter-button" type="button" data-review-filter="open" aria-pressed="false">Uavklarte</button>
+                    <button class="review-filter-button" type="button" data-review-filter="flagged" aria-pressed="false">Se på</button>
+                    <button class="review-filter-button" type="button" data-review-filter="suggested" aria-pressed="false">Forslag</button>
+                    <button class="review-next-button" id="nextOpenButton" type="button" disabled>Neste uavklarte</button>
+                </div>
                 <input id="importReviewInput" type="file" accept="application/json,.json" hidden>
                 <p class="review-status" id="reviewStatus" role="status"></p>
             </section>
@@ -36,6 +43,6 @@
             <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
         </main>
     </div>
-    <script type="module" src="js/word-review.js?v=20260622-5"></script>
+    <script type="module" src="js/word-review.js?v=20260622-8"></script>
 </body>
 </html>
