@@ -9,30 +9,71 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header role="banner">
-        <nav role="navigation">
-            <h1 class="site-title">Skriblerne</h1>
-            <p class="subtitle">En tegnelek av Ellinor og Henry</p>
-        </nav>
-    </header>
-    <main role="main">
-        <section class="hero-section" aria-labelledby="dagens-ord">
-            <h2 id="dagens-ord">Dagens ord</h2>
-            <div id="word-display" aria-live="polite">Laster dagens ord...</div>
-        </section>
+    <div class="app-shell">
+        <header class="topbar" role="banner">
+            <div>
+                <h1 class="site-title">Skriblerne</h1>
+                <p class="subtitle">En tegnelek av Ellinor og Henry</p>
+            </div>
+            <button class="text-button" id="todayButton" type="button">I dag</button>
+        </header>
 
-        <section class="admin-section" aria-labelledby="admin-section">
-            <h2 id="admin-section" class="visually-hidden">Administrasjon</h2>
-            <form class="add-word-form" aria-label="Legg til nytt ord">
-                <div class="input-wrapper">
-                    <input type="text" id="newWord" placeholder="Skriv inn nytt ord" aria-label="Nytt ord" enterkeyhint="done">
-                    <div class="error-message" id="errorMessage" role="alert" aria-live="assertive"></div>
+        <main class="workspace" role="main">
+            <section class="view view--active" id="todayView" aria-labelledby="todayHeading">
+                <div class="date-bar">
+                    <button class="icon-button" id="previousYearButton" type="button" aria-label="Forrige år">‹</button>
+                    <div class="date-copy">
+                        <p id="selectedDateLabel">Laster dato</p>
+                        <h2 id="todayHeading">Laster ord</h2>
+                    </div>
+                    <button class="icon-button" id="nextYearButton" type="button" aria-label="Neste år">›</button>
                 </div>
-            </form>
-            <div id="words-container" role="list" aria-label="Liste over ord"></div>
-        </section>
-    </main>
-    <script type="module" src="js/main.js"></script>
-    <script type="module" src="js/admin.js"></script>
+
+                <div class="year-strip" id="yearStrip" aria-label="Bilder fra samme dato tidligere år"></div>
+
+                <section class="photo-stage" aria-live="polite">
+                    <div class="photo-frame" id="photoFrame">
+                        <img id="currentImage" alt="" hidden>
+                        <div class="empty-memory" id="emptyMemory">
+                            <button class="add-photo-button" id="addPhotoButton" type="button" aria-label="Legg til bilde for valgt dato">+</button>
+                            <p>Legg til bilde</p>
+                        </div>
+                    </div>
+                    <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" hidden>
+                    <p class="status-text" id="statusText" role="status"></p>
+                </section>
+
+                <section class="comparison" aria-labelledby="comparisonHeading">
+                    <h3 id="comparisonHeading">Samme dato</h3>
+                    <div class="comparison-list" id="comparisonList"></div>
+                </section>
+            </section>
+
+            <section class="view" id="overviewView" aria-labelledby="overviewHeading" hidden>
+                <div class="overview-header">
+                    <button class="icon-button" id="overviewPreviousYearButton" type="button" aria-label="Forrige år">‹</button>
+                    <div>
+                        <p class="eyebrow">Årsoversikt</p>
+                        <h2 id="overviewHeading">2026</h2>
+                    </div>
+                    <button class="icon-button" id="overviewNextYearButton" type="button" aria-label="Neste år">›</button>
+                </div>
+                <div class="year-grid" id="yearGrid" role="list" aria-label="365 dager i valgt år"></div>
+                <p class="grid-help" id="overviewSummary"></p>
+            </section>
+        </main>
+
+        <nav class="bottom-nav" aria-label="Visning">
+            <button class="nav-button" type="button" data-view="overview" aria-pressed="false">
+                <span class="nav-icon nav-icon--grid" aria-hidden="true"></span>
+                <span>Oversikt</span>
+            </button>
+            <button class="nav-button nav-button--active" type="button" data-view="today" aria-pressed="true">
+                <span class="nav-icon nav-icon--day" aria-hidden="true"></span>
+                <span>Dagens ord</span>
+            </button>
+        </nav>
+    </div>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
