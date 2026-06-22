@@ -15,6 +15,12 @@ const app = express();
 const port = process.env.PORT || 3000;
 const MAX_IMAGE_DATA_LENGTH = 7_500_000;
 const EDIT_CODE_HEADER = 'x-skriblerne-edit-code';
+const DEFAULT_OWNER = 'henry';
+const OWNER_LABELS = {
+    henry: 'Henry',
+    ellinor: 'Ellinor'
+};
+const OWNER_KEYS = Object.keys(OWNER_LABELS);
 const ALLOWED_ORIGINS = new Set([
     'https://henrymeen.no',
     'https://www.henrymeen.no',
@@ -23,6 +29,7 @@ const ALLOWED_ORIGINS = new Set([
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
+        await syncMemoryOwnership();
         await syncWordCycle();
         console.log('Connected to MongoDB');
     })
@@ -66,15 +73,41 @@ function normalizeYear(value) {
     return year;
 }
 
+function normalizeOwner(value) {
+    if (value === undefined || value === null || value === '') {
+        return DEFAULT_OWNER;
+    }
+
+    const owner = String(value).trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(OWNER_LABELS, owner) ? owner : null;
+}
+
+function ownerSortValue(owner) {
+    const index = OWNER_KEYS.indexOf(normalizeOwner(owner) || DEFAULT_OWNER);
+    return index === -1 ? OWNER_KEYS.length : index;
+}
+
+function compareMemories(a, b) {
+    if (a.year !== b.year) {
+        return b.year - a.year;
+    }
+
+    return ownerSortValue(a.owner) - ownerSortValue(b.owner);
+}
+
 function serializeMemory(memory, { includeImage = false } = {}) {
     if (!memory) {
         return null;
     }
 
+    const owner = normalizeOwner(memory.owner) || DEFAULT_OWNER;
+
     return {
         id: memory._id,
         year: memory.year,
         monthDay: memory.monthDay,
+        owner,
+        ownerName: OWNER_LABELS[owner],
         dayOfYear: memory.dayOfYear,
         word: memory.word,
         thumbnailData: memory.thumbnailData,
@@ -121,6 +154,26 @@ function requireEditCode(req, res, next) {
     }
 
     next();
+}
+
+async function dropLegacyMemoryIndexes() {
+    const indexes = await Memory.collection.indexes();
+    const legacyIndexNames = new Set(['year_1_monthDay_1']);
+
+    await Promise.all(
+        indexes
+            .filter((index) => legacyIndexNames.has(index.name))
+            .map((index) => Memory.collection.dropIndex(index.name))
+    );
+}
+
+async function syncMemoryOwnership() {
+    await Memory.updateMany(
+        { owner: { $nin: OWNER_KEYS } },
+        { $set: { owner: DEFAULT_OWNER } }
+    );
+    await dropLegacyMemoryIndexes();
+    await Memory.syncIndexes();
 }
 
 async function dropLegacyWordIndexes() {
@@ -179,16 +232,27 @@ app.get('/api/words', async (req, res) => {
 app.get('/api/calendar/:year', async (req, res) => {
     try {
         const year = normalizeYear(req.params.year);
-        const memories = await Memory.find({ year }).select('-imageData').lean();
-        const memoriesByDate = new Map(memories.map((memory) => [memory.monthDay, memory]));
+        const memories = await Memory.find({ year }).select('-imageData').sort({ monthDay: 1 }).lean();
+        const memoriesByDate = memories.reduce((days, memory) => {
+            const dayMemories = days.get(memory.monthDay) || [];
+            dayMemories.push(memory);
+            days.set(memory.monthDay, dayMemories);
+            return days;
+        }, new Map());
 
         res.json({
             year,
-            days: WORD_CYCLE.map((day) => ({
-                ...day,
-                date: formatDateForYear(year, day.monthDay),
-                memory: serializeMemory(memoriesByDate.get(day.monthDay))
-            }))
+            days: WORD_CYCLE.map((day) => {
+                const dayMemories = (memoriesByDate.get(day.monthDay) || []).sort(compareMemories);
+                const serializedMemories = dayMemories.map((memory) => serializeMemory(memory));
+
+                return {
+                    ...day,
+                    date: formatDateForYear(year, day.monthDay),
+                    memory: serializedMemories[0] || null,
+                    memories: serializedMemories
+                };
+            })
         });
     } catch (error) {
         console.error('Error fetching calendar:', error);
@@ -205,7 +269,12 @@ app.get('/api/memory/:year/:monthDay', async (req, res) => {
             return res.status(400).json({ error: 'Ugyldig dato' });
         }
 
-        const memory = await Memory.findOne({ year, monthDay }).lean();
+        const owner = normalizeOwner(req.query.owner);
+        if (!owner) {
+            return res.status(400).json({ error: 'Ugyldig person' });
+        }
+
+        const memory = await Memory.findOne({ year, monthDay, owner }).lean();
         res.json({ memory: serializeMemory(memory, { includeImage: true }) });
     } catch (error) {
         console.error('Error fetching memory:', error);
@@ -222,6 +291,7 @@ app.get('/api/memories/day/:monthDay', async (req, res) => {
         }
 
         const memories = await Memory.find({ monthDay }).sort({ year: -1 }).lean();
+        memories.sort(compareMemories);
         res.json({ memories: memories.map((memory) => serializeMemory(memory, { includeImage: true })) });
     } catch (error) {
         console.error('Error fetching day memories:', error);
@@ -233,10 +303,15 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
     try {
         const year = normalizeYear(req.body.year);
         const { monthDay, imageData, thumbnailData, mimeType, originalName = '' } = req.body;
+        const owner = normalizeOwner(req.body.owner);
         const word = getWordForMonthDay(monthDay);
 
         if (!word) {
             return res.status(400).json({ error: 'Ugyldig dato' });
+        }
+
+        if (!owner) {
+            return res.status(400).json({ error: 'Ugyldig person' });
         }
 
         const imageError = validateImagePayload({ imageData, thumbnailData, mimeType });
@@ -245,10 +320,11 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
         }
 
         const memory = await Memory.findOneAndUpdate(
-            { year, monthDay },
+            { year, monthDay, owner },
             {
                 year,
                 monthDay,
+                owner,
                 dayOfYear: word.dayOfYear,
                 word: word.word,
                 imageData,

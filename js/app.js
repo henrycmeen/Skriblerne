@@ -2,19 +2,27 @@ import { API_BASE_URL } from './config.js';
 
 const today = new Date();
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
+const OWNER_STORAGE_KEY = 'skriblerne-owner';
+const DEFAULT_OWNER = 'henry';
+const OWNER_LABELS = {
+    henry: 'Henry',
+    ellinor: 'Ellinor'
+};
 const state = {
     view: 'today',
     selectedYear: today.getFullYear(),
     selectedMonthDay: toMonthDay(today),
+    owner: normalizeOwner(localStorage.getItem(OWNER_STORAGE_KEY)),
     calendar: null,
     currentMemory: null,
     dayMemories: [],
-    selectedComparisonYear: null,
+    selectedComparisonKey: null,
     editCode: localStorage.getItem(EDIT_CODE_STORAGE_KEY) || ''
 };
 
 const elements = {
     todayButton: document.getElementById('todayButton'),
+    ownerButtons: Array.from(document.querySelectorAll('[data-owner]')),
     todayView: document.getElementById('todayView'),
     overviewView: document.getElementById('overviewView'),
     selectedDateLabel: document.getElementById('selectedDateLabel'),
@@ -23,6 +31,7 @@ const elements = {
     datePickerInput: document.getElementById('datePickerInput'),
     currentImage: document.getElementById('currentImage'),
     emptyMemory: document.getElementById('emptyMemory'),
+    emptyMemoryText: document.getElementById('emptyMemoryText'),
     photoFrame: document.getElementById('photoFrame'),
     addPhotoButton: document.getElementById('addPhotoButton'),
     replacePhotoButton: document.getElementById('replacePhotoButton'),
@@ -62,6 +71,46 @@ function toMonthDay(date) {
 
 function normalizeCycleMonthDay(monthDay) {
     return monthDay === '02-29' ? '02-28' : monthDay;
+}
+
+function normalizeOwner(owner) {
+    if (typeof owner !== 'string') {
+        return DEFAULT_OWNER;
+    }
+
+    const normalizedOwner = owner.trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(OWNER_LABELS, normalizedOwner)
+        ? normalizedOwner
+        : DEFAULT_OWNER;
+}
+
+function ownerLabel(owner = state.owner) {
+    return OWNER_LABELS[normalizeOwner(owner)];
+}
+
+function memoryKey(memory) {
+    if (!memory) {
+        return '';
+    }
+
+    return `${memory.year}:${normalizeOwner(memory.owner)}`;
+}
+
+function currentMemoryKey() {
+    return `${state.selectedYear}:${state.owner}`;
+}
+
+function memoriesForDay(day) {
+    if (Array.isArray(day?.memories)) {
+        return day.memories;
+    }
+
+    return day?.memory ? [day.memory] : [];
+}
+
+function selectedOwnerMemoryForDay(day) {
+    const memories = memoriesForDay(day);
+    return memories.find((memory) => normalizeOwner(memory.owner) === state.owner) || memories[0] || null;
 }
 
 function dateFromMonthDay(year, monthDay) {
@@ -152,7 +201,8 @@ async function loadCalendar(year = state.selectedYear) {
 }
 
 async function loadSelectedMemory() {
-    const payload = await fetchJson(`/api/memory/${state.selectedYear}/${state.selectedMonthDay}`);
+    const owner = encodeURIComponent(state.owner);
+    const payload = await fetchJson(`/api/memory/${state.selectedYear}/${state.selectedMonthDay}?owner=${owner}`);
     state.currentMemory = payload.memory;
 }
 
@@ -171,11 +221,20 @@ async function refreshAll() {
 
 function render() {
     renderView();
+    renderOwner();
     renderDate();
     renderPhoto();
     renderYearStrip();
     renderComparison();
     renderOverview();
+}
+
+function renderOwner() {
+    elements.ownerButtons.forEach((button) => {
+        const active = button.dataset.owner === state.owner;
+        button.classList.toggle('identity-button--active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
 }
 
 function renderView() {
@@ -206,9 +265,13 @@ function renderDate() {
 }
 
 function renderPhoto() {
+    elements.emptyMemoryText.textContent = `Legg til bilde som ${ownerLabel()}`;
+    elements.addPhotoButton.setAttribute('aria-label', `Legg til bilde som ${ownerLabel()} for valgt dato`);
+    elements.replacePhotoButton.setAttribute('aria-label', `Bytt bilde for ${ownerLabel()} på valgt dato`);
+
     if (state.currentMemory?.imageData) {
         elements.currentImage.src = state.currentMemory.imageData;
-        elements.currentImage.alt = `${state.currentMemory.word}, ${state.currentMemory.year}`;
+        elements.currentImage.alt = `${state.currentMemory.word}, ${ownerLabel(state.currentMemory.owner)}, ${state.currentMemory.year}`;
         elements.currentImage.hidden = false;
         elements.emptyMemory.hidden = true;
         elements.replacePhotoButton.hidden = false;
@@ -227,8 +290,9 @@ function renderPhoto() {
 function renderYearStrip() {
     elements.yearStrip.replaceChildren();
 
+    const activeKey = currentMemoryKey();
     const memoriesToShow = state.dayMemories.filter((memory) => (
-        memory.year !== state.selectedYear || state.dayMemories.length > 1
+        memoryKey(memory) !== activeKey || state.dayMemories.length > 1
     ));
 
     if (memoriesToShow.length === 0) {
@@ -241,16 +305,26 @@ function renderYearStrip() {
 
     memoriesToShow.forEach((memory) => {
         const button = document.createElement('button');
+        const image = document.createElement('img');
+        const label = document.createElement('span');
+        const ownerName = ownerLabel(memory.owner);
+        const key = memoryKey(memory);
+
         button.type = 'button';
         button.className = 'year-memory';
-        button.classList.toggle('year-memory--active', memory.year === state.selectedYear);
-        button.setAttribute('aria-label', `Åpne ${memory.word} fra ${memory.year}`);
-        button.innerHTML = `
-            <img src="${memory.thumbnailData}" alt="">
-            <span>${memory.year}</span>
-        `;
+        button.classList.toggle('year-memory--active', key === activeKey);
+        button.setAttribute('aria-label', `Åpne ${memory.word} fra ${ownerName} ${memory.year}`);
+
+        image.src = memory.thumbnailData;
+        image.alt = '';
+        label.textContent = `${ownerName} ${memory.year}`;
+
+        button.append(image, label);
         button.addEventListener('click', async () => {
             state.selectedYear = memory.year;
+            state.owner = normalizeOwner(memory.owner);
+            state.selectedComparisonKey = null;
+            localStorage.setItem(OWNER_STORAGE_KEY, state.owner);
             await refreshAll();
         });
         elements.yearStrip.appendChild(button);
@@ -261,7 +335,8 @@ function renderComparison() {
     elements.comparisonList.replaceChildren();
     elements.comparisonPair.replaceChildren();
 
-    const otherMemories = state.dayMemories.filter((memory) => memory.year !== state.selectedYear);
+    const activeKey = currentMemoryKey();
+    const otherMemories = state.dayMemories.filter((memory) => memoryKey(memory) !== activeKey);
     if (otherMemories.length === 0) {
         elements.comparison.hidden = true;
         elements.comparisonPair.hidden = true;
@@ -270,27 +345,29 @@ function renderComparison() {
 
     elements.comparison.hidden = false;
     const visibleMemories = otherMemories.slice(0, 6);
-    const selectedComparison = visibleMemories.find((memory) => memory.year === state.selectedComparisonYear) || visibleMemories[0];
-    state.selectedComparisonYear = selectedComparison.year;
+    const selectedComparison = visibleMemories.find((memory) => memoryKey(memory) === state.selectedComparisonKey) || visibleMemories[0];
+    state.selectedComparisonKey = memoryKey(selectedComparison);
 
     visibleMemories.forEach((memory) => {
         const button = document.createElement('button');
         const image = document.createElement('img');
-        const year = document.createElement('span');
+        const label = document.createElement('span');
+        const key = memoryKey(memory);
+        const ownerName = ownerLabel(memory.owner);
 
         button.type = 'button';
         button.className = 'comparison-item';
-        button.classList.toggle('comparison-item--active', memory.year === selectedComparison.year);
-        button.setAttribute('aria-pressed', String(memory.year === selectedComparison.year));
-        button.setAttribute('aria-label', `Sammenlign med ${memory.year}`);
+        button.classList.toggle('comparison-item--active', key === state.selectedComparisonKey);
+        button.setAttribute('aria-pressed', String(key === state.selectedComparisonKey));
+        button.setAttribute('aria-label', `Sammenlign med ${ownerName} ${memory.year}`);
 
         image.src = memory.thumbnailData;
         image.alt = '';
-        year.textContent = String(memory.year);
+        label.textContent = `${ownerName} ${memory.year}`;
 
-        button.append(image, year);
+        button.append(image, label);
         button.addEventListener('click', () => {
-            state.selectedComparisonYear = memory.year;
+            state.selectedComparisonKey = key;
             renderComparison();
         });
         elements.comparisonList.appendChild(button);
@@ -303,8 +380,8 @@ function renderComparison() {
 
     elements.comparisonPair.hidden = false;
     elements.comparisonPair.append(
-        createComparisonFigure(state.currentMemory, 'Valgt år'),
-        createComparisonFigure(selectedComparison, 'Tidligere år')
+        createComparisonFigure(state.currentMemory, 'Valgt'),
+        createComparisonFigure(selectedComparison, 'Mot')
     );
 }
 
@@ -315,8 +392,8 @@ function createComparisonFigure(memory, label) {
 
     figure.className = 'comparison-panel';
     image.src = memory.imageData;
-    image.alt = `${memory.word}, ${memory.year}`;
-    caption.textContent = `${label}: ${memory.year}`;
+    image.alt = `${memory.word}, ${ownerLabel(memory.owner)}, ${memory.year}`;
+    caption.textContent = `${label}: ${ownerLabel(memory.owner)} ${memory.year}`;
 
     figure.append(image, caption);
     return figure;
@@ -329,6 +406,7 @@ function renderOverview() {
 
     elements.yearGrid.replaceChildren();
     let filledDays = 0;
+    let photoCount = 0;
     const daysByMonth = groupDaysByMonth(state.calendar.days);
 
     daysByMonth.forEach((monthDays, month) => {
@@ -348,8 +426,10 @@ function renderOverview() {
         dotGrid.setAttribute('aria-label', `${monthName} ${state.selectedYear}`);
 
         monthDays.forEach((day) => {
-            if (day.memory) {
+            const memories = memoriesForDay(day);
+            if (memories.length > 0) {
                 filledDays += 1;
+                photoCount += memories.length;
             }
             dotGrid.appendChild(createDayDot(day));
         });
@@ -358,7 +438,9 @@ function renderOverview() {
         elements.yearGrid.appendChild(section);
     });
 
-    elements.overviewSummary.textContent = `${filledDays} bilder i ${state.selectedYear}`;
+    elements.overviewSummary.textContent = photoCount === filledDays
+        ? `${filledDays} bilder i ${state.selectedYear}`
+        : `${photoCount} bilder på ${filledDays} dager i ${state.selectedYear}`;
 }
 
 function groupDaysByMonth(days) {
@@ -372,24 +454,33 @@ function groupDaysByMonth(days) {
 
 function createDayDot(day) {
     const button = document.createElement('button');
+    const memories = memoriesForDay(day);
+    const previewMemory = selectedOwnerMemoryForDay(day);
+    const imageCountText = memories.length === 0
+        ? ', mangler bilde'
+        : memories.length === 1
+            ? ', har 1 bilde'
+            : `, har ${memories.length} bilder`;
+
     button.type = 'button';
     button.className = 'day-dot';
-    button.classList.toggle('day-dot--filled', Boolean(day.memory));
+    button.classList.toggle('day-dot--filled', memories.length > 0);
     button.classList.toggle('day-dot--today', isToday(state.selectedYear, day.monthDay));
     button.classList.toggle('day-dot--selected', day.monthDay === state.selectedMonthDay);
     button.setAttribute('role', 'listitem');
     button.setAttribute(
         'aria-label',
-        `${day.day}.${day.month}. ${day.word}${day.memory ? ', har bilde' : ', mangler bilde'}`
+        `${day.day}.${day.month}. ${day.word}${imageCountText}`
     );
 
-    if (day.memory?.thumbnailData) {
-        button.style.setProperty('--dot-image', `url("${day.memory.thumbnailData}")`);
+    if (previewMemory?.thumbnailData) {
+        button.style.setProperty('--dot-image', `url("${previewMemory.thumbnailData}")`);
     }
 
     button.addEventListener('click', async () => {
         state.selectedMonthDay = day.monthDay;
         state.view = 'today';
+        state.selectedComparisonKey = null;
         await refreshAll();
     });
 
@@ -398,6 +489,7 @@ function createDayDot(day) {
 
 async function changeYear(offset) {
     state.selectedYear += offset;
+    state.selectedComparisonKey = null;
     await refreshAll();
 }
 
@@ -405,6 +497,7 @@ async function goToToday() {
     state.selectedYear = today.getFullYear();
     state.selectedMonthDay = toMonthDay(today);
     state.view = 'today';
+    state.selectedComparisonKey = null;
     await refreshAll();
 }
 
@@ -419,6 +512,7 @@ async function goToPickedDate(value) {
     state.selectedYear = pickedDate.year;
     state.selectedMonthDay = pickedDate.monthDay;
     state.view = 'today';
+    state.selectedComparisonKey = null;
     await refreshAll();
 }
 
@@ -435,6 +529,18 @@ function openDatePicker() {
 function switchView(view) {
     state.view = view;
     renderView();
+}
+
+async function switchOwner(owner) {
+    const nextOwner = normalizeOwner(owner);
+    if (nextOwner === state.owner) {
+        return;
+    }
+
+    state.owner = nextOwner;
+    state.selectedComparisonKey = null;
+    localStorage.setItem(OWNER_STORAGE_KEY, state.owner);
+    await refreshAll();
 }
 
 async function handlePhotoSelected(event) {
@@ -465,6 +571,7 @@ async function handlePhotoSelected(event) {
             body: JSON.stringify({
                 year: state.selectedYear,
                 monthDay: state.selectedMonthDay,
+                owner: state.owner,
                 originalName: file.name,
                 ...payload
             })
@@ -513,6 +620,9 @@ function renderCanvas(bitmap, maxSize, quality) {
 
 function bindEvents() {
     elements.todayButton.addEventListener('click', goToToday);
+    elements.ownerButtons.forEach((button) => {
+        button.addEventListener('click', () => switchOwner(button.dataset.owner));
+    });
     elements.previousYearButton.addEventListener('click', () => changeYear(-1));
     elements.nextYearButton.addEventListener('click', () => changeYear(1));
     elements.overviewPreviousYearButton.addEventListener('click', () => changeYear(-1));

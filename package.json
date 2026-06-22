@@ -8,8 +8,8 @@
     "init-db": "node scripts/initDb.js",
     "review:apply": "node scripts/applyWordReview.js",
     "review:status": "node scripts/reviewStatus.js",
-    "test": "node scripts/validateWords.js && node scripts/testWordReviewValidation.js",
-    "check": "node --check server.js && node --check js/app.js && node --check js/word-review.js && node --check scripts/applyWordReview.js && node --check scripts/reviewStatus.js && node --check scripts/testWordReviewValidation.js && npm test"
+    "test": "node scripts/validateWords.js && node scripts/testWordReviewValidation.js && node scripts/testMemoryOwnership.js",
+    "check": "node --check server.js && node --check js/app.js && node --check js/word-review.js && node --check scripts/applyWordReview.js && node --check scripts/reviewStatus.js && node --check scripts/testWordReviewValidation.js && node --check scripts/testMemoryOwnership.js && npm test"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

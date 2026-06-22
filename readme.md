@@ -17,7 +17,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - 29. februar har ikke egen database-dato. På skuddår normaliseres dagens ord til 28. februar for å holde syklusen på 365 faste datoer.
 - `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
 - `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
-- `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay`.
+- `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay` + `owner` (`henry` eller `ellinor`).
 - `index.html` og `js/app.js` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
 - `ordliste.html` og `js/word-review.js` brukes til manuell gjennomgang av alle 365 ordene.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.

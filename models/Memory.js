@@ -13,6 +13,14 @@ const memorySchema = new mongoose.Schema(
             required: true,
             match: /^\d{2}-\d{2}$/
         },
+        owner: {
+            type: String,
+            required: true,
+            enum: ['henry', 'ellinor'],
+            default: 'henry',
+            lowercase: true,
+            trim: true
+        },
         dayOfYear: {
             type: Number,
             required: true,
@@ -46,7 +54,7 @@ const memorySchema = new mongoose.Schema(
     }
 );
 
-memorySchema.index({ year: 1, monthDay: 1 }, { unique: true });
-memorySchema.index({ monthDay: 1, year: -1 });
+memorySchema.index({ year: 1, monthDay: 1, owner: 1 }, { unique: true });
+memorySchema.index({ monthDay: 1, year: -1, owner: 1 });
 
 module.exports = mongoose.model('Memory', memorySchema);

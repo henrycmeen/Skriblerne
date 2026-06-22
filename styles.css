@@ -70,6 +70,28 @@ button {
     gap: 1rem;
 }
 
+.identity-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.identity-button {
+    min-height: 2.5rem;
+    padding: 0 0.05rem;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.identity-button--active {
+    border-bottom-color: var(--text-color);
+    color: var(--text-color);
+}
+
 .site-title {
     font-size: 1.5rem;
     font-weight: 500;
@@ -170,6 +192,7 @@ button {
 .icon-button:hover,
 .text-button:hover,
 .text-link:hover,
+.identity-button:hover,
 .year-memory:hover,
 .day-dot:hover,
 .nav-button:hover {
@@ -179,6 +202,7 @@ button {
 .icon-button:focus-visible,
 .text-button:focus-visible,
 .text-link:focus-visible,
+.identity-button:focus-visible,
 .add-photo-button:focus-visible,
 .replace-photo-button:focus-visible,
 .year-memory:focus-visible,
@@ -243,6 +267,7 @@ button {
     min-width: 3.5rem;
     color: var(--subtitle-color);
     font-size: 0.8125rem;
+    line-height: 1.2;
 }
 
 .year-memory img {
@@ -379,6 +404,7 @@ button {
 .comparison-item span {
     color: var(--subtitle-color);
     font-size: 0.8125rem;
+    line-height: 1.2;
 }
 
 .comparison-item--active {
@@ -871,7 +897,13 @@ button {
         gap: 1.25rem;
     }
 
+    .topbar {
+        display: grid;
+    }
+
     .topbar-actions {
+        flex-wrap: wrap;
+        justify-content: flex-start;
         gap: 0.75rem;
     }
 

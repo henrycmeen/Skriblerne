@@ -6,7 +6,7 @@
     <meta name="description" content="Skriblerne - En tegnelek av Ellinor og Henry">
     <title>Skriblerne</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-9">
+    <link rel="stylesheet" href="styles.css?v=20260622-11">
 </head>
 <body>
     <div class="app-shell">
@@ -16,6 +16,10 @@
                 <p class="subtitle">En tegnelek av Ellinor og Henry</p>
             </div>
             <div class="topbar-actions" aria-label="Sidevalg">
+                <div class="identity-switch" aria-label="Hvem legger inn bilde?">
+                    <button class="identity-button" type="button" data-owner="henry" aria-pressed="true">Henry</button>
+                    <button class="identity-button" type="button" data-owner="ellinor" aria-pressed="false">Ellinor</button>
+                </div>
                 <a class="text-link" href="ordliste.html">Ord</a>
                 <button class="text-button" id="todayButton" type="button">I dag</button>
             </div>
@@ -43,7 +47,7 @@
                         <img id="currentImage" alt="" hidden>
                         <div class="empty-memory" id="emptyMemory">
                             <button class="add-photo-button" id="addPhotoButton" type="button" aria-label="Legg til bilde for valgt dato">+</button>
-                            <p>Legg til bilde</p>
+                            <p id="emptyMemoryText">Legg til bilde</p>
                         </div>
                     </div>
                     <button class="replace-photo-button" id="replacePhotoButton" type="button" hidden>Bytt bilde</button>
@@ -95,6 +99,6 @@
             </form>
         </div>
     </div>
-    <script type="module" src="js/app.js?v=20260622-9"></script>
+    <script type="module" src="js/app.js?v=20260622-11"></script>
 </body>
 </html>
