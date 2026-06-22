@@ -432,6 +432,10 @@ function pad(value) {
     return String(value).padStart(2, '0');
 }
 
+function normalizeCycleMonthDay(monthDay) {
+    return monthDay === '02-29' ? '02-28' : monthDay;
+}
+
 function buildWordCycle() {
     const days = [];
 
@@ -467,7 +471,7 @@ const WORD_CYCLE = buildWordCycle();
 const WORD_BY_MONTH_DAY = new Map(WORD_CYCLE.map((day) => [day.monthDay, day]));
 
 function getMonthDayFromDate(date) {
-    return `${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    return normalizeCycleMonthDay(`${pad(date.getMonth() + 1)}-${pad(date.getDate())}`);
 }
 
 function getWordForMonthDay(monthDay) {
@@ -489,5 +493,6 @@ module.exports = {
     formatDateForYear,
     getMonthDayFromDate,
     getWordForMonthDay,
-    isValidMonthDay
+    isValidMonthDay,
+    normalizeCycleMonthDay
 };

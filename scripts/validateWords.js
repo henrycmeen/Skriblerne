@@ -1,4 +1,11 @@
-const { DAYS_IN_MONTH, WORD_CYCLE } = require('../data/wordCycle');
+const {
+    DAYS_IN_MONTH,
+    WORD_CYCLE,
+    getMonthDayFromDate,
+    getWordForMonthDay,
+    isValidMonthDay,
+    normalizeCycleMonthDay
+} = require('../data/wordCycle');
 
 const errors = [];
 const expectedDays = DAYS_IN_MONTH.reduce((sum, days) => sum + days, 0);
@@ -26,6 +33,22 @@ WORD_CYCLE.forEach((entry, index) => {
     }
     words.add(normalizedWord);
 });
+
+if (normalizeCycleMonthDay('02-29') !== '02-28') {
+    errors.push('Expected 02-29 to normalize to 02-28 in the 365-day cycle');
+}
+
+if (getMonthDayFromDate(new Date(2028, 1, 29)) !== '02-28') {
+    errors.push('Expected leap day Date to resolve to 02-28 in the 365-day cycle');
+}
+
+if (!getWordForMonthDay('02-28')) {
+    errors.push('Expected 02-28 to have a word');
+}
+
+if (isValidMonthDay('02-29')) {
+    errors.push('Expected explicit 02-29 to remain outside the stored 365-date cycle');
+}
 
 if (errors.length > 0) {
     console.error(errors.join('\n'));

@@ -14,6 +14,7 @@ Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. Appe
 
 Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 
+- 29. februar har ikke egen database-dato. På skuddår normaliseres dagens ord til 28. februar for å holde syklusen på 365 faste datoer.
 - `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
 - `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay`.

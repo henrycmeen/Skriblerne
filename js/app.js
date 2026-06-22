@@ -55,7 +55,11 @@ const dateFormatter = new Intl.DateTimeFormat('nb-NO', {
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 
 function toMonthDay(date) {
-    return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    return normalizeCycleMonthDay(`${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+}
+
+function normalizeCycleMonthDay(monthDay) {
+    return monthDay === '02-29' ? '02-28' : monthDay;
 }
 
 function dateFromMonthDay(year, monthDay) {
