@@ -792,10 +792,10 @@ async function handleImportSelected(event) {
         const payload = JSON.parse(await file.text());
         const result = importReviewPayload(payload, currentWords);
 
-        replaceReviewState(result.reviewState);
+        mergeReviewState(result.reviewState);
         render(currentWords);
         setReviewStatus(
-            `${result.reviewed} ${result.reviewed === 1 ? 'markering' : 'markeringer'} importert fra ${file.name}.`,
+            `${result.reviewed} ${result.reviewed === 1 ? 'markering' : 'markeringer'} importert og flettet fra ${file.name}.`,
             'success'
         );
     } catch (error) {
