@@ -28,6 +28,15 @@ function buildReview(overrides = {}) {
     };
 }
 
+function buildSharedReviewState(reviewExport) {
+    return {
+        updatedAt: '2026-06-22T12:00:00.000Z',
+        reviewState: Object.fromEntries(
+            reviewExport.words.map((word) => [word.monthDay, word.review])
+        )
+    };
+}
+
 function writeReview(tempDir, name, payload) {
     const filePath = path.join(tempDir, `${name}.json`);
     fs.writeFileSync(filePath, JSON.stringify(payload, null, 2));
@@ -88,6 +97,13 @@ function main() {
         assert.match(validReviewStatus.stdout, /Henry: 365\/365/);
         assert.match(validReviewStatus.stdout, /Ellinor: 365\/365/);
         assert.match(validReviewStatus.stdout, /Klar for apply: ja/);
+
+        const sharedReviewState = buildSharedReviewState(validReview);
+        assertPass(runApply(writeReview(tempDir, 'shared-state-valid', sharedReviewState)), 'valid shared review state');
+        const sharedReviewStateStatus = runStatus(writeReview(tempDir, 'shared-state-status', sharedReviewState));
+        assertPass(sharedReviewStateStatus, 'valid shared review state status');
+        assert.match(sharedReviewStateStatus.stdout, /Markert: 365\/365/);
+        assert.match(sharedReviewStateStatus.stdout, /Klar for apply: ja/);
 
         const partialReview = buildReview({
             '01-01': { status: 'flagged', suggestedWord: '' },

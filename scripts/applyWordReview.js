@@ -13,7 +13,7 @@ function usage() {
     console.log([
         'Usage: node scripts/applyWordReview.js <review.json> [--output <path> | --write]',
         '',
-        'Validates a Skriblerne word-review export and builds an updated 365-word cycle.',
+        'Validates a Skriblerne word-review export or shared reviewState JSON and builds an updated 365-word cycle.',
         'By default this only checks the file and prints a summary.',
         '',
         'Options:',
@@ -57,17 +57,20 @@ function parseArgs(argv) {
 
 function readReviewExport(reviewPath) {
     const payload = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-    const words = Array.isArray(payload?.words)
-        ? payload.words
-        : Array.isArray(payload)
-            ? payload
-            : null;
 
-    if (!words) {
-        throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
+    if (Array.isArray(payload?.words)) {
+        return payload.words;
     }
 
-    return words;
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (payload?.reviewState && typeof payload.reviewState === 'object') {
+        return Object.entries(payload.reviewState).map(([monthDay, review]) => ({ monthDay, review }));
+    }
+
+    throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
 }
 
 function normalizeWord(word) {

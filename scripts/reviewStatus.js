@@ -11,23 +11,27 @@ function usage() {
     console.log([
         'Usage: node scripts/reviewStatus.js [review.json]',
         '',
-        'Without a file path, status is shown for the generated first-pass candidate review.'
+        'Without a file path, status is shown for the generated first-pass candidate review.',
+        'The file may be a browser export, an array, or the shared { reviewState } API shape.'
     ].join('\n'));
 }
 
 function readReviewExport(reviewPath) {
     const payload = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-    const words = Array.isArray(payload?.words)
-        ? payload.words
-        : Array.isArray(payload)
-            ? payload
-            : null;
 
-    if (!words) {
-        throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
+    if (Array.isArray(payload?.words)) {
+        return payload.words;
     }
 
-    return words;
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    if (payload?.reviewState && typeof payload.reviewState === 'object') {
+        return Object.entries(payload.reviewState).map(([monthDay, review]) => ({ monthDay, review }));
+    }
+
+    throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
 }
 
 function normalizeWord(word) {
