@@ -4,6 +4,7 @@ import {
     hasRequiredReviewers,
     isReviewCompleteForApply,
     markReviewer,
+    mergeReviewStates,
     monthProgressLabel,
     needsReviewer
 } from '../js/review-progress.mjs';
@@ -39,6 +40,44 @@ assert.deepEqual(
 assert.deepEqual(
     markReviewer({ status: 'approved', reviewers: { ellinor: true } }, 'unknown'),
     { status: 'approved', reviewers: { henry: false, ellinor: true } }
+);
+assert.deepEqual(
+    mergeReviewStates(
+        {
+            '01-01': { status: 'approved', reviewers: { henry: true } },
+            '01-02': {
+                status: 'flagged',
+                suggestedWord: 'Vinterlys',
+                note: 'Se på årstid',
+                reviewers: { ellinor: true }
+            }
+        },
+        {
+            '01-01': { reviewers: { ellinor: true } },
+            '01-02': { status: 'approved', reviewers: { henry: true } },
+            '01-03': { status: 'flagged', suggestedWord: 'Månespor' }
+        }
+    ),
+    {
+        '01-01': {
+            status: 'approved',
+            suggestedWord: '',
+            note: '',
+            reviewers: { henry: true, ellinor: true }
+        },
+        '01-02': {
+            status: 'flagged',
+            suggestedWord: 'Vinterlys',
+            note: 'Se på årstid',
+            reviewers: { henry: true, ellinor: true }
+        },
+        '01-03': {
+            status: 'flagged',
+            suggestedWord: 'Månespor',
+            note: '',
+            reviewers: { henry: false, ellinor: false }
+        }
+    }
 );
 
 const progress = buildMonthProgress(words, reviewState);

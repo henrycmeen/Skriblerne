@@ -37,6 +37,67 @@ export function markReviewer(review = {}, reviewer) {
     };
 }
 
+function normalizeReview(review = {}) {
+    const status = ['approved', 'flagged'].includes(review?.status) ? review.status : '';
+    const suggestedWord = normalizeReviewWord(review.suggestedWord);
+    const note = normalizeReviewWord(review.note);
+    const reviewers = normalizeReviewers(review.reviewers);
+
+    return {
+        status,
+        suggestedWord,
+        note,
+        reviewers
+    };
+}
+
+function hasReviewContent(review) {
+    return Boolean(
+        review.status ||
+        review.suggestedWord ||
+        review.note ||
+        REQUIRED_REVIEWERS.some((reviewer) => review.reviewers[reviewer])
+    );
+}
+
+function mergeReview(existingReview = {}, incomingReview = {}) {
+    const existing = normalizeReview(existingReview);
+    const incoming = normalizeReview(incomingReview);
+    const status = existing.status === 'flagged' || incoming.status === 'flagged'
+        ? 'flagged'
+        : incoming.status || existing.status;
+    const merged = {
+        status,
+        suggestedWord: incoming.suggestedWord || existing.suggestedWord,
+        note: incoming.note || existing.note,
+        reviewers: Object.fromEntries(
+            REQUIRED_REVIEWERS.map((reviewer) => [
+                reviewer,
+                Boolean(existing.reviewers[reviewer] || incoming.reviewers[reviewer])
+            ])
+        )
+    };
+
+    return hasReviewContent(merged) ? merged : null;
+}
+
+export function mergeReviewStates(existingState = {}, incomingState = {}) {
+    const monthDays = new Set([
+        ...Object.keys(existingState || {}),
+        ...Object.keys(incomingState || {})
+    ]);
+    const mergedState = {};
+
+    monthDays.forEach((monthDay) => {
+        const merged = mergeReview(existingState?.[monthDay], incomingState?.[monthDay]);
+        if (merged) {
+            mergedState[monthDay] = merged;
+        }
+    });
+
+    return mergedState;
+}
+
 export function isReviewCompleteForApply(review = {}) {
     if (!hasRequiredReviewers(review)) {
         return false;

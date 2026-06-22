@@ -10,6 +10,7 @@ import {
     hasRequiredReviewers,
     isReviewCompleteForApply,
     markReviewer,
+    mergeReviewStates,
     monthProgressLabel,
     needsReviewer,
     normalizeReviewers,
@@ -85,8 +86,7 @@ function replaceReviewState(nextState) {
 }
 
 function mergeReviewState(nextState) {
-    Object.assign(reviewState, nextState);
-    saveReviewState();
+    replaceReviewState(mergeReviewStates(reviewState, nextState));
 }
 
 async function fetchWords() {
@@ -473,35 +473,58 @@ function setReviewStatus(message, tone = 'neutral') {
     elements.status.dataset.tone = tone;
 }
 
-async function loadSharedReviewState() {
+async function loadSharedReviewState(options = {}) {
+    const { auto = false } = options;
+
     if (!Array.isArray(currentWords) || currentWords.length === 0) {
-        setReviewStatus('Ordlisten må være lastet før felles gjennomgang kan hentes.', 'error');
+        if (!auto) {
+            setReviewStatus('Ordlisten må være lastet før felles gjennomgang kan hentes.', 'error');
+        }
         return;
     }
 
     try {
-        setReviewStatus('Henter felles gjennomgang.');
+        if (!auto) {
+            setReviewStatus('Henter felles gjennomgang.');
+        }
         const payload = await fetchSharedReview();
         const imported = importReviewPayload({ reviewState: payload.reviewState || {} }, currentWords, {
             allowEmpty: true
         });
         if (imported.reviewed === 0 && Object.keys(reviewState).length > 0) {
-            setReviewStatus('Felles gjennomgang er tom. Lokal gjennomgang er beholdt.', 'neutral');
+            if (!auto) {
+                setReviewStatus('Felles gjennomgang er tom. Lokal gjennomgang er beholdt.', 'neutral');
+            }
             return;
         }
 
-        replaceReviewState(imported.reviewState);
+        if (imported.reviewed === 0) {
+            if (!auto) {
+                setReviewStatus('Felles gjennomgang er tom.', 'neutral');
+            }
+            return;
+        }
+
+        mergeReviewState(imported.reviewState);
         render(currentWords);
         setReviewStatus(
-            imported.reviewed > 0
-                ? `${imported.reviewed} ${imported.reviewed === 1 ? 'markering' : 'markeringer'} hentet fra felles gjennomgang.`
-                : 'Felles gjennomgang er tom.',
-            imported.reviewed > 0 ? 'success' : 'neutral'
+            `${imported.reviewed} ${imported.reviewed === 1 ? 'markering' : 'markeringer'} hentet og flettet fra felles gjennomgang.`,
+            'success'
         );
     } catch (error) {
         console.error(error);
-        setReviewStatus(error.message || 'Kunne ikke hente felles gjennomgang.', 'error');
+        setReviewStatus(
+            auto
+                ? 'Kunne ikke hente felles gjennomgang automatisk. Lokal gjennomgang er beholdt.'
+                : error.message || 'Kunne ikke hente felles gjennomgang.',
+            auto ? 'neutral' : 'error'
+        );
     }
+}
+
+async function initializeWordReview(words) {
+    render(words);
+    await loadSharedReviewState({ auto: true });
 }
 
 async function saveSharedReviewState() {
@@ -870,7 +893,7 @@ elements.sharedReviewCodeDialog.addEventListener('click', (event) => {
 });
 
 fetchWords()
-    .then(render)
+    .then(initializeWordReview)
     .catch((error) => {
         console.error(error);
         elements.summary.textContent = error.message;
