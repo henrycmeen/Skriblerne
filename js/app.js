@@ -15,10 +15,11 @@ import {
     readStoredIdentity
 } from './identity-utils.mjs';
 import {
+    buildOverviewLegend,
     buildOverviewSummary,
     createOwnerCounts,
     getOverviewOwnerState
-} from './overview-utils.mjs';
+} from './overview-utils.mjs?v=20260622-21';
 
 const today = new Date();
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
@@ -73,6 +74,7 @@ const elements = {
     comparisonPair: document.getElementById('comparisonPair'),
     yearGrid: document.getElementById('yearGrid'),
     overviewSummary: document.getElementById('overviewSummary'),
+    overviewLegend: document.getElementById('overviewLegend'),
     overviewHeading: document.getElementById('overviewHeading'),
     previousYearButton: document.getElementById('previousYearButton'),
     nextYearButton: document.getElementById('nextYearButton'),
@@ -546,6 +548,8 @@ function renderOverview() {
     let filledDays = 0;
     let photoCount = 0;
     const ownerCounts = createOwnerCounts();
+    const ownerDotCounts = createOwnerCounts();
+    let bothCount = 0;
     const daysByMonth = groupDaysByMonth(state.calendar.days);
 
     daysByMonth.forEach((monthDays, month) => {
@@ -566,9 +570,15 @@ function renderOverview() {
 
         monthDays.forEach((day) => {
             const memories = memoriesForDay(day);
+            const ownerState = getOverviewOwnerState(memories, state.signedInOwner);
             if (memories.length > 0) {
                 filledDays += 1;
                 photoCount += memories.length;
+                if (ownerState.owners.length > 1) {
+                    bothCount += 1;
+                } else if (ownerState.owners[0]) {
+                    ownerDotCounts[ownerState.owners[0]] += 1;
+                }
                 memories.forEach((memory) => {
                     const owner = normalizeOwner(memory.owner);
                     ownerCounts[owner] += 1;
@@ -586,6 +596,10 @@ function renderOverview() {
         ownerCounts,
         photoCount,
         year: state.selectedYear
+    });
+    elements.overviewLegend.textContent = buildOverviewLegend({
+        ...ownerDotCounts,
+        both: bothCount
     });
 }
 

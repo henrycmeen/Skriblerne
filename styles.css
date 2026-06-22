@@ -521,6 +521,13 @@ button {
     margin-bottom: 0.4rem;
 }
 
+.overview-legend {
+    margin-top: 0.45rem;
+    color: var(--subtitle-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 .year-grid {
     display: grid;
     gap: 1.25rem;

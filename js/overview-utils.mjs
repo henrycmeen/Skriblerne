@@ -47,6 +47,10 @@ export function buildOverviewSummary({ filledDays, ownerCounts, photoCount, year
     return ownerText ? `${base}. ${ownerText}.` : base;
 }
 
+export function buildOverviewLegend(ownerCounts) {
+    return `Prikker: bare Henry ${ownerCounts.henry || 0}, bare Ellinor ${ownerCounts.ellinor || 0}, begge ${ownerCounts.both || 0}.`;
+}
+
 function uniqueOwners(memories) {
     const ownerSet = new Set(memories.map((memory) => normalizeOwner(memory.owner)));
     return OWNER_ORDER.filter((owner) => ownerSet.has(owner));
