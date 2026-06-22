@@ -3,11 +3,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Memory = require('./models/Memory');
 const Word = require('./models/Word');
+const WordReview = require('./models/WordReview');
 const {
     DEFAULT_OWNER,
     OWNER_LABELS,
     serializeMemory
 } = require('./lib/memorySerialization');
+const {
+    sanitizeReviewState,
+    serializeWordReview
+} = require('./lib/wordReviewState');
 const {
     WORD_CYCLE,
     formatDateForYear,
@@ -203,6 +208,36 @@ app.get('/api/word/today', async (req, res) => {
 
 app.get('/api/words', async (req, res) => {
     res.json(WORD_CYCLE);
+});
+
+app.get('/api/word-review', async (_req, res) => {
+    try {
+        const review = await WordReview.findOne({ key: 'shared' }).lean();
+        res.json(serializeWordReview(review));
+    } catch (error) {
+        console.error('Error fetching word review:', error);
+        res.status(500).json({ error: 'Kunne ikke hente felles gjennomgang' });
+    }
+});
+
+app.post('/api/word-review', requireEditCode, async (req, res) => {
+    try {
+        const reviewState = sanitizeReviewState(req.body?.reviewState || req.body);
+        const review = await WordReview.findOneAndUpdate(
+            { key: 'shared' },
+            { key: 'shared', reviewState },
+            {
+                new: true,
+                runValidators: true,
+                upsert: true
+            }
+        ).lean();
+
+        res.json(serializeWordReview(review));
+    } catch (error) {
+        console.error('Error saving word review:', error);
+        res.status(500).json({ error: 'Kunne ikke lagre felles gjennomgang' });
+    }
 });
 
 app.get('/api/calendar/:year', async (req, res) => {

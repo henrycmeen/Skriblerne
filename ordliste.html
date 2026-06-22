@@ -34,6 +34,8 @@
                 <p class="review-readiness" id="reviewReadiness" role="status" aria-live="polite">Sjekker gjennomgangen.</p>
                 <div class="review-actions">
                     <button class="review-export-button" id="firstPassButton" type="button" disabled>Start første-pass</button>
+                    <button class="review-export-button" id="loadSharedReviewButton" type="button" disabled>Hent felles</button>
+                    <button class="review-export-button" id="saveSharedReviewButton" type="button" disabled>Lagre felles</button>
                     <button class="review-export-button" id="importReviewButton" type="button" disabled>Importer gjennomgang</button>
                     <button class="review-export-button" id="exportReviewButton" type="button" disabled>Eksporter gjennomgang</button>
                 </div>
@@ -52,7 +54,21 @@
 
             <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
         </main>
+
+        <div class="edit-code-dialog" id="sharedReviewCodeDialog" role="dialog" aria-modal="true" aria-labelledby="sharedReviewCodeHeading" hidden>
+            <form class="edit-code-panel" id="sharedReviewCodeForm">
+                <h2 id="sharedReviewCodeHeading">Kode for lagring</h2>
+                <p class="dialog-context" id="sharedReviewCodeContext">Felles ordgjennomgang</p>
+                <input class="visually-hidden" type="text" name="username" autocomplete="username" value="skriblerne" tabindex="-1" aria-hidden="true" readonly>
+                <input id="sharedReviewCodeInput" name="password" type="password" autocomplete="current-password" aria-label="Kode for lagring">
+                <p class="edit-code-message" id="sharedReviewCodeMessage" role="status"></p>
+                <div class="edit-code-actions">
+                    <button class="text-button" id="cancelSharedReviewCodeButton" type="button">Avbryt</button>
+                    <button class="review-export-button" type="submit">Fortsett</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <script type="module" src="js/word-review.js?v=20260622-19"></script>
+    <script type="module" src="js/word-review.js?v=20260622-20"></script>
 </body>
 </html>

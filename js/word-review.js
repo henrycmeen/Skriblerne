@@ -18,6 +18,7 @@ import {
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
+const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
 const REVIEW_FILTERS = new Set(['all', 'open', 'mine', 'flagged', 'suggested']);
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
@@ -35,13 +36,24 @@ const elements = {
     readiness: document.getElementById('reviewReadiness'),
     status: document.getElementById('reviewStatus'),
     firstPassButton: document.getElementById('firstPassButton'),
+    loadSharedButton: document.getElementById('loadSharedReviewButton'),
+    saveSharedButton: document.getElementById('saveSharedReviewButton'),
     importButton: document.getElementById('importReviewButton'),
     importInput: document.getElementById('importReviewInput'),
     exportButton: document.getElementById('exportReviewButton'),
     filterButtons: Array.from(document.querySelectorAll('[data-review-filter]')),
     monthNav: document.getElementById('reviewMonthNav'),
-    nextOpenButton: document.getElementById('nextOpenButton')
+    nextOpenButton: document.getElementById('nextOpenButton'),
+    sharedReviewCodeDialog: document.getElementById('sharedReviewCodeDialog'),
+    sharedReviewCodeForm: document.getElementById('sharedReviewCodeForm'),
+    sharedReviewCodeInput: document.getElementById('sharedReviewCodeInput'),
+    sharedReviewCodeContext: document.getElementById('sharedReviewCodeContext'),
+    sharedReviewCodeMessage: document.getElementById('sharedReviewCodeMessage'),
+    cancelSharedReviewCodeButton: document.getElementById('cancelSharedReviewCodeButton')
 };
+
+let editCode = localStorage.getItem(EDIT_CODE_STORAGE_KEY) || '';
+let sharedReviewCodeResolver = null;
 
 function loadReviewState() {
     try {
@@ -99,6 +111,63 @@ async function fetchFirstPassCandidates() {
     return firstPassCandidates;
 }
 
+async function fetchSharedReview() {
+    const response = await fetch(`${API_BASE_URL}/api/word-review`, { cache: 'no-store' });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(payload.error || 'Kunne ikke hente felles gjennomgang.');
+    }
+
+    return payload;
+}
+
+async function saveSharedReview() {
+    const code = editCode || await requestSharedReviewCode();
+    if (!code) {
+        return null;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/word-review`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Skriblerne-Edit-Code': code
+        },
+        body: JSON.stringify({ reviewState })
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            editCode = '';
+            localStorage.removeItem(EDIT_CODE_STORAGE_KEY);
+        }
+        throw new Error(payload.error || 'Kunne ikke lagre felles gjennomgang.');
+    }
+
+    editCode = code;
+    localStorage.setItem(EDIT_CODE_STORAGE_KEY, editCode);
+    return payload;
+}
+
+function requestSharedReviewCode(message = '') {
+    return new Promise((resolve) => {
+        sharedReviewCodeResolver = resolve;
+        elements.sharedReviewCodeContext.textContent = 'Felles ordgjennomgang';
+        elements.sharedReviewCodeMessage.textContent = message;
+        elements.sharedReviewCodeInput.value = editCode;
+        elements.sharedReviewCodeDialog.hidden = false;
+        elements.sharedReviewCodeInput.focus();
+    });
+}
+
+function resolveSharedReviewCode(code) {
+    elements.sharedReviewCodeDialog.hidden = true;
+    sharedReviewCodeResolver?.(code);
+    sharedReviewCodeResolver = null;
+}
+
 function groupByMonth(words) {
     return words.reduce((months, word) => {
         const month = months.get(word.month) || [];
@@ -140,6 +209,8 @@ function render(words) {
     renderMonthNav(words);
     applyReviewFilter();
     elements.firstPassButton.disabled = false;
+    elements.loadSharedButton.disabled = false;
+    elements.saveSharedButton.disabled = false;
     elements.importButton.disabled = false;
     elements.exportButton.disabled = false;
     elements.nextOpenButton.disabled = false;
@@ -402,6 +473,69 @@ function setReviewStatus(message, tone = 'neutral') {
     elements.status.dataset.tone = tone;
 }
 
+async function loadSharedReviewState() {
+    if (!Array.isArray(currentWords) || currentWords.length === 0) {
+        setReviewStatus('Ordlisten må være lastet før felles gjennomgang kan hentes.', 'error');
+        return;
+    }
+
+    try {
+        setReviewStatus('Henter felles gjennomgang.');
+        const payload = await fetchSharedReview();
+        const imported = importReviewPayload({ reviewState: payload.reviewState || {} }, currentWords, {
+            allowEmpty: true
+        });
+        if (imported.reviewed === 0 && Object.keys(reviewState).length > 0) {
+            setReviewStatus('Felles gjennomgang er tom. Lokal gjennomgang er beholdt.', 'neutral');
+            return;
+        }
+
+        replaceReviewState(imported.reviewState);
+        render(currentWords);
+        setReviewStatus(
+            imported.reviewed > 0
+                ? `${imported.reviewed} ${imported.reviewed === 1 ? 'markering' : 'markeringer'} hentet fra felles gjennomgang.`
+                : 'Felles gjennomgang er tom.',
+            imported.reviewed > 0 ? 'success' : 'neutral'
+        );
+    } catch (error) {
+        console.error(error);
+        setReviewStatus(error.message || 'Kunne ikke hente felles gjennomgang.', 'error');
+    }
+}
+
+async function saveSharedReviewState() {
+    if (!Array.isArray(currentWords) || currentWords.length === 0) {
+        setReviewStatus('Ordlisten må være lastet før felles gjennomgang kan lagres.', 'error');
+        return;
+    }
+
+    try {
+        if (Object.keys(reviewState).length === 0) {
+            setReviewStatus('Ingen lokal gjennomgang å lagre.', 'neutral');
+            return;
+        }
+
+        setReviewStatus('Lagrer felles gjennomgang.');
+        const payload = await saveSharedReview();
+        if (!payload) {
+            setReviewStatus('');
+            return;
+        }
+
+        const imported = importReviewPayload({ reviewState: payload.reviewState || {} }, currentWords, {
+            allowEmpty: true
+        });
+
+        replaceReviewState(imported.reviewState);
+        render(currentWords);
+        setReviewStatus('Felles gjennomgang er lagret.', 'success');
+    } catch (error) {
+        console.error(error);
+        setReviewStatus(error.message || 'Kunne ikke lagre felles gjennomgang.', 'error');
+    }
+}
+
 async function applyFirstPassCandidates() {
     if (!Array.isArray(currentWords) || currentWords.length === 0) {
         setReviewStatus('Ordlisten må være lastet før første-pass kan brukes.', 'error');
@@ -649,7 +783,7 @@ async function handleImportSelected(event) {
     }
 }
 
-function importReviewPayload(payload, words) {
+function importReviewPayload(payload, words, options = {}) {
     if (!Array.isArray(words) || words.length === 0) {
         throw new Error('Ordlisten må være lastet før import.');
     }
@@ -659,8 +793,12 @@ function importReviewPayload(payload, words) {
         : Array.isArray(payload)
             ? payload
             : null;
+    const reviewEntries = payload?.reviewState && typeof payload.reviewState === 'object'
+        ? Object.entries(payload.reviewState).map(([monthDay, review]) => ({ monthDay, review }))
+        : null;
+    const sourceWords = exportedWords || reviewEntries;
 
-    if (!exportedWords) {
+    if (!sourceWords) {
         throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
     }
 
@@ -669,7 +807,7 @@ function importReviewPayload(payload, words) {
     let matched = 0;
     let reviewed = 0;
 
-    exportedWords.forEach((word) => {
+    sourceWords.forEach((word) => {
         if (!word || !validDates.has(word.monthDay)) {
             return;
         }
@@ -683,7 +821,7 @@ function importReviewPayload(payload, words) {
         }
     });
 
-    if (matched === 0) {
+    if (matched === 0 && !options.allowEmpty) {
         throw new Error('Filen inneholder ingen datoer som finnes i ordlisten.');
     }
 
@@ -707,11 +845,28 @@ elements.identityButtons.forEach((button) => {
     button.addEventListener('click', () => switchReviewer(button.dataset.identity));
 });
 elements.firstPassButton.addEventListener('click', applyFirstPassCandidates);
+elements.loadSharedButton.addEventListener('click', loadSharedReviewState);
+elements.saveSharedButton.addEventListener('click', saveSharedReviewState);
 elements.importButton.addEventListener('click', () => elements.importInput.click());
 elements.importInput.addEventListener('change', handleImportSelected);
 elements.nextOpenButton.addEventListener('click', goToNextOpenWord);
 elements.filterButtons.forEach((button) => {
     button.addEventListener('click', () => setActiveFilter(button.dataset.reviewFilter));
+});
+elements.sharedReviewCodeForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const code = elements.sharedReviewCodeInput.value.trim();
+    if (!code) {
+        elements.sharedReviewCodeMessage.textContent = 'Skriv inn kode.';
+        return;
+    }
+    resolveSharedReviewCode(code);
+});
+elements.cancelSharedReviewCodeButton.addEventListener('click', () => resolveSharedReviewCode(null));
+elements.sharedReviewCodeDialog.addEventListener('click', (event) => {
+    if (event.target === elements.sharedReviewCodeDialog) {
+        resolveSharedReviewCode(null);
+    }
 });
 
 fetchWords()
