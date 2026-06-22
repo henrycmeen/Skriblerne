@@ -29,12 +29,14 @@ assert.match(html, /Prikker: bare Henry 0, bare Ellinor 0, begge 0\./);
 assert.match(html, /id="loginDialog"/);
 assert.match(html, /data-login-owner="henry"/);
 assert.match(html, /data-login-owner="ellinor"/);
-assert.match(html, /styles\.css\?v=20260622-22/);
+assert.match(html, /styles\.css\?v=20260622-23/);
 assert.match(html, /js\/app\.js\?v=20260622-23/);
 assert.match(script, /overview-utils\.mjs\?v=20260622-21/);
 assert.match(script, /history-utils\.mjs\?v=20260622-22/);
 assert.match(script, /buildOverviewLegend/);
 assert.match(script, /pickVisibleOwnerForDay/);
 assert.match(styles, /\.photo-frame\s*{[^}]*min-height:\s*clamp\(14rem,\s*38vh,\s*25rem\);/s);
+assert.match(styles, /\.year-strip\s*{[^}]*min-height:\s*1\.4rem;/s);
+assert.doesNotMatch(styles, /\.year-strip\s+\.muted\s*{[^}]*display:\s*none;/s);
 
 console.log('Validated separate photo source inputs.');
