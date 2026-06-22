@@ -540,6 +540,7 @@ function matchesReviewFilter(word, filter = activeFilter) {
 
 function applyReviewFilter() {
     const wordsByMonthDay = new Map(currentWords.map((word) => [word.monthDay, word]));
+    let activeElementWasHidden = false;
 
     document.querySelectorAll('.review-month').forEach((section) => {
         let hasVisibleRows = false;
@@ -547,12 +548,17 @@ function applyReviewFilter() {
         section.querySelectorAll('.review-word-row').forEach((row) => {
             const word = wordsByMonthDay.get(row.dataset.monthDay);
             const isVisible = word ? matchesReviewFilter(word) : true;
+            activeElementWasHidden ||= !isVisible && row.contains(document.activeElement);
             row.hidden = !isVisible;
             hasVisibleRows ||= isVisible;
         });
 
         section.hidden = !hasVisibleRows;
     });
+
+    if (activeElementWasHidden) {
+        elements.nextOpenButton.focus({ preventScroll: true });
+    }
 }
 
 function setActiveFilter(filter) {
