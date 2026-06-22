@@ -7,9 +7,21 @@
     "suggestedWord": "Rosakinn",
     "note": "Kinn alene er litt flatt som bildeoppgave. Rosakinn passer februarkulde bedre."
   },
+  "02-14": {
+    "suggestedWord": "Hjertekort",
+    "note": "Kjærlighet er abstrakt. Hjertekort gjør temaet konkret og passer februar bedre som bildeoppgave."
+  },
   "02-17": {
     "suggestedWord": "Røde kinn",
     "note": "Rødme er abstrakt. Røde kinn er mer konkret for foto og tegning."
+  },
+  "02-26": {
+    "suggestedWord": "Vennebånd",
+    "note": "Vennskap er fint, men abstrakt. Vennebånd gir et konkret motiv dere kan lage, finne eller tegne."
+  },
+  "03-17": {
+    "suggestedWord": "Grønn mose",
+    "note": "Grønnskjær er poetisk og litt uklart. Grønn mose er mer konkret og vårnært."
   },
   "03-26": {
     "suggestedWord": "Bjørkekvast",
@@ -23,9 +35,17 @@
     "suggestedWord": "Tullebriller",
     "note": "Aprilsnarr er en hendelse mer enn et motiv. Tullebriller holder leken i samme spor."
   },
+  "05-07": {
+    "suggestedWord": "Sjøskum",
+    "note": "Sjøbris er vanskelig å fotografere direkte. Sjøskum beholder kystfølelsen, men blir mer synlig."
+  },
   "05-16": {
     "suggestedWord": "Flaggstang",
     "note": "Tog virker litt tilfeldig rett før 17. mai. Flaggstang peker tydeligere mot måneden."
+  },
+  "06-01": {
+    "suggestedWord": "Sommersol",
+    "note": "Midnattssol er fint, men geografisk smalt. Sommersol fungerer flere steder og er lettere som bilde."
   },
   "06-08": {
     "suggestedWord": "Solstol",
@@ -35,6 +55,10 @@
     "suggestedWord": "Sommerfuglvinge",
     "note": "Dagpåfugløye er fint, men svært spesifikt og vanskelig å finne."
   },
+  "08-13": {
+    "suggestedWord": "Gult blad",
+    "note": "Høsttegn er abstrakt. Gult blad gjør overgangen mot høst enkel å se og bruke."
+  },
   "08-25": {
     "suggestedWord": "Skoleplakat",
     "note": "Oppslagstavle er ganske nøytralt. Skoleplakat passer skolestart bedre."
@@ -43,6 +67,10 @@
     "suggestedWord": "Høstfarge",
     "note": "Sepia er et teknisk/abstrakt fargeord. Høstfarge er mer tilgjengelig."
   },
+  "09-13": {
+    "suggestedWord": "Vind i løv",
+    "note": "Høstvind er vanskelig å fotografere direkte. Vind i løv gjør bevegelsen mer konkret."
+  },
   "09-29": {
     "suggestedWord": "Grønnsakskasse",
     "note": "Kål kan være litt snevert. Grønnsakskasse åpner for flere høstmotiver."
@@ -50,6 +78,10 @@
   "10-04": {
     "suggestedWord": "Tåkeskog",
     "note": "Tåkelur er ikke like relevant for alle. Tåkeskog er mer stemningsfullt og årstidsnært."
+  },
+  "10-16": {
+    "suggestedWord": "Flyvende løv",
+    "note": "Vindkast er abstrakt. Flyvende løv viser samme høstvær på en mer bildevennlig måte."
   },
   "10-17": {
     "suggestedWord": "Oransje blad",
@@ -67,6 +99,14 @@
     "suggestedWord": "Lueknute",
     "note": "Luesnor er litt rart og smalt. Lueknute er mer bildevennlig."
   },
+  "11-04": {
+    "suggestedWord": "Regn på rute",
+    "note": "Regnslør er poetisk og diffust. Regn på rute er et tydelig novembermotiv."
+  },
+  "11-14": {
+    "suggestedWord": "Varmeovn",
+    "note": "Varmovn er et uvanlig ord. Varmeovn er mer naturlig norsk og like lett å fotografere."
+  },
   "11-17": {
     "suggestedWord": "Blåtime",
     "note": "Mørkeblå er abstrakt. Blåtime er et kjent motiv i mørk november."
@@ -74,6 +114,10 @@
   "11-19": {
     "suggestedWord": "Kjøkkenbord",
     "note": "Stilleben er et voksen/kunstfaglig ord. Kjøkkenbord gir samme rolige motiv på enklere språk."
+  },
+  "12-25": {
+    "suggestedWord": "Kaneldryss",
+    "note": "Kanelduft er en lukt og derfor vanskelig som bilde. Kaneldryss gjør motivet synlig."
   },
   "12-30": {
     "suggestedWord": "Nyttårsglass",

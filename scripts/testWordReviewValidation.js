@@ -119,14 +119,18 @@ function main() {
         assertPass(runFirstPass(firstPassPath), 'first-pass review export');
         const firstPass = JSON.parse(fs.readFileSync(firstPassPath, 'utf8'));
         assert.equal(firstPass.words.length, 365);
-        assert.equal(firstPass.stats.candidates, 20);
+        assert.equal(firstPass.stats.candidates, 31);
         assert.equal(
             firstPass.words.filter((word) => word.review.status === 'flagged').length,
-            20
+            31
         );
         assert.deepEqual(
             firstPass.words[0].review.reviewers,
             { henry: false, ellinor: false }
+        );
+        assert.equal(
+            firstPass.words.find((word) => word.monthDay === '11-14').review.suggestedWord,
+            'Varmeovn'
         );
         assert.equal(
             firstPass.words.find((word) => word.monthDay === '12-30').review.suggestedWord,
@@ -134,7 +138,7 @@ function main() {
         );
         const firstPassStatus = runStatus(firstPassPath);
         assertPass(firstPassStatus, 'first-pass review status');
-        assert.match(firstPassStatus.stdout, /Markert: 20\/365/);
+        assert.match(firstPassStatus.stdout, /Markert: 31\/365/);
         assert.match(firstPassStatus.stdout, /Henry: 0\/365/);
         assert.match(firstPassStatus.stdout, /Ellinor: 0\/365/);
         assert.match(firstPassStatus.stdout, /Klar for apply: nei/);
@@ -142,7 +146,7 @@ function main() {
         const defaultStatus = runStatus();
         assertPass(defaultStatus, 'default first-pass review status');
         assert.match(defaultStatus.stdout, /Kilde: første-pass kandidatliste/);
-        assert.match(defaultStatus.stdout, /Markert: 20\/365/);
+        assert.match(defaultStatus.stdout, /Markert: 31\/365/);
         assert.match(defaultStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
