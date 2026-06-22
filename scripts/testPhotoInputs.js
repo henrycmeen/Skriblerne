@@ -19,5 +19,9 @@ assert.match(libraryInput, /type="file"/);
 assert.match(cameraInput, /capture="environment"/);
 assert.doesNotMatch(libraryInput, /capture=/);
 assert.match(html, /id="photoSourceDialog"/);
+assert.match(html, /id="photoSourceContext"/);
+assert.match(html, /id="loginDialog"/);
+assert.match(html, /data-login-owner="henry"/);
+assert.match(html, /data-login-owner="ellinor"/);
 
 console.log('Validated separate photo source inputs.');

@@ -5,15 +5,26 @@ import {
     getMemoryKey,
     normalizeOwner
 } from './history-utils.mjs';
+import {
+    findOwnMemory,
+    formatSaveContext,
+    IDENTITY_STORAGE_KEY,
+    normalizeIdentity,
+    readStoredIdentity
+} from './identity-utils.mjs';
 
 const today = new Date();
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
 const OWNER_STORAGE_KEY = 'skriblerne-owner';
+const storedIdentity = readStoredIdentity(localStorage);
+const initialOwner = storedIdentity || normalizeOwner(localStorage.getItem(OWNER_STORAGE_KEY));
 const state = {
     view: 'today',
     selectedYear: today.getFullYear(),
     selectedMonthDay: toMonthDay(today),
-    owner: normalizeOwner(localStorage.getItem(OWNER_STORAGE_KEY)),
+    owner: initialOwner,
+    signedInOwner: initialOwner,
+    hasIdentity: Boolean(storedIdentity),
     calendar: null,
     currentMemory: null,
     dayMemories: [],
@@ -25,7 +36,8 @@ const state = {
 
 const elements = {
     todayButton: document.getElementById('todayButton'),
-    ownerButtons: Array.from(document.querySelectorAll('[data-owner]')),
+    identityLabel: document.getElementById('identityLabel'),
+    identityButtons: Array.from(document.querySelectorAll('[data-identity]')),
     todayView: document.getElementById('todayView'),
     overviewView: document.getElementById('overviewView'),
     selectedDateLabel: document.getElementById('selectedDateLabel'),
@@ -41,6 +53,7 @@ const elements = {
     cameraInput: document.getElementById('cameraInput'),
     libraryInput: document.getElementById('libraryInput'),
     photoSourceDialog: document.getElementById('photoSourceDialog'),
+    photoSourceContext: document.getElementById('photoSourceContext'),
     cameraButton: document.getElementById('cameraButton'),
     libraryButton: document.getElementById('libraryButton'),
     cancelPhotoSourceButton: document.getElementById('cancelPhotoSourceButton'),
@@ -59,8 +72,11 @@ const elements = {
     editCodeDialog: document.getElementById('editCodeDialog'),
     editCodeForm: document.getElementById('editCodeForm'),
     editCodeInput: document.getElementById('editCodeInput'),
+    editCodeContext: document.getElementById('editCodeContext'),
     editCodeMessage: document.getElementById('editCodeMessage'),
     cancelEditCodeButton: document.getElementById('cancelEditCodeButton'),
+    loginDialog: document.getElementById('loginDialog'),
+    loginButtons: Array.from(document.querySelectorAll('[data-login-owner]')),
     navButtons: Array.from(document.querySelectorAll('[data-view]'))
 };
 
@@ -85,6 +101,10 @@ function ownerLabel(owner = state.owner) {
     return OWNER_LABELS[normalizeOwner(owner)];
 }
 
+function signedInOwnerLabel() {
+    return OWNER_LABELS[state.signedInOwner];
+}
+
 function memoriesForDay(day) {
     if (Array.isArray(day?.memories)) {
         return day.memories;
@@ -96,6 +116,14 @@ function memoriesForDay(day) {
 function selectedOwnerMemoryForDay(day) {
     const memories = memoriesForDay(day);
     return memories.find((memory) => normalizeOwner(memory.owner) === state.owner) || memories[0] || null;
+}
+
+function signedInMemoryForSelectedDate() {
+    return findOwnMemory(state.dayMemories, {
+        year: state.selectedYear,
+        monthDay: state.selectedMonthDay,
+        owner: state.signedInOwner
+    });
 }
 
 function dateFromMonthDay(year, monthDay) {
@@ -176,6 +204,7 @@ async function fetchJson(path, options = {}) {
 function requestEditCode(message = '') {
     return new Promise((resolve) => {
         editCodeResolver = resolve;
+        elements.editCodeContext.textContent = saveContextText();
         elements.editCodeMessage.textContent = message;
         elements.editCodeInput.value = state.editCode;
         elements.editCodeDialog.hidden = false;
@@ -190,6 +219,7 @@ function resolveEditCode(code) {
 }
 
 function openPhotoSourceDialog() {
+    elements.photoSourceContext.textContent = saveContextText();
     elements.photoSourceDialog.hidden = false;
     elements.cameraButton.focus();
 }
@@ -201,6 +231,15 @@ function closePhotoSourceDialog() {
 function openPhotoInput(input) {
     closePhotoSourceDialog();
     input.click();
+}
+
+function saveContextText() {
+    return formatSaveContext({
+        owner: state.signedInOwner,
+        year: state.selectedYear,
+        monthDay: state.selectedMonthDay,
+        word: selectedDay()?.word
+    });
 }
 
 async function loadCalendar(year = state.selectedYear) {
@@ -257,7 +296,7 @@ async function refreshAll() {
 
 function render() {
     renderView();
-    renderOwner();
+    renderIdentity();
     renderDate();
     renderPhoto();
     renderYearStrip();
@@ -265,9 +304,10 @@ function render() {
     renderOverview();
 }
 
-function renderOwner() {
-    elements.ownerButtons.forEach((button) => {
-        const active = button.dataset.owner === state.owner;
+function renderIdentity() {
+    elements.identityLabel.textContent = state.hasIdentity ? 'Jeg er' : 'Velg bruker';
+    elements.identityButtons.forEach((button) => {
+        const active = button.dataset.identity === state.signedInOwner;
         button.classList.toggle('identity-button--active', active);
         button.setAttribute('aria-pressed', String(active));
     });
@@ -301,9 +341,15 @@ function renderDate() {
 }
 
 function renderPhoto() {
-    elements.emptyMemoryText.textContent = `Legg til bilde som ${ownerLabel()}`;
-    elements.addPhotoButton.setAttribute('aria-label', `Legg til bilde som ${ownerLabel()} for valgt dato`);
-    elements.replacePhotoButton.setAttribute('aria-label', `Bytt bilde for ${ownerLabel()} på valgt dato`);
+    const ownMemory = signedInMemoryForSelectedDate();
+    const uploadLabel = ownMemory
+        ? `Bytt bilde som ${signedInOwnerLabel()}`
+        : `Legg til bilde som ${signedInOwnerLabel()}`;
+
+    elements.emptyMemoryText.textContent = uploadLabel;
+    elements.addPhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
+    elements.replacePhotoButton.textContent = uploadLabel;
+    elements.replacePhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
 
     if (state.currentMemory?.imageData) {
         elements.currentImage.src = state.currentMemory.imageData;
@@ -360,7 +406,6 @@ function renderYearStrip() {
             state.selectedYear = memory.year;
             state.owner = normalizeOwner(memory.owner);
             state.selectedComparisonKey = null;
-            localStorage.setItem(OWNER_STORAGE_KEY, state.owner);
             await refreshAll();
         });
         elements.yearStrip.appendChild(button);
@@ -578,15 +623,21 @@ function switchView(view) {
     renderView();
 }
 
-async function switchOwner(owner) {
-    const nextOwner = normalizeOwner(owner);
-    if (nextOwner === state.owner) {
+async function switchIdentity(owner) {
+    const nextOwner = normalizeIdentity(owner);
+    if (!nextOwner || (nextOwner === state.signedInOwner && state.hasIdentity)) {
         return;
     }
 
+    state.signedInOwner = nextOwner;
     state.owner = nextOwner;
+    state.hasIdentity = true;
     state.selectedComparisonKey = null;
-    localStorage.setItem(OWNER_STORAGE_KEY, state.owner);
+    elements.loginDialog.hidden = true;
+    localStorage.setItem(IDENTITY_STORAGE_KEY, state.signedInOwner);
+    localStorage.setItem(OWNER_STORAGE_KEY, state.signedInOwner);
+    renderIdentity();
+    renderPhoto();
     await refreshAll();
 }
 
@@ -618,12 +669,13 @@ async function handlePhotoSelected(event) {
             body: JSON.stringify({
                 year: state.selectedYear,
                 monthDay: state.selectedMonthDay,
-                owner: state.owner,
+                owner: state.signedInOwner,
                 originalName: file.name,
                 ...payload
             })
         });
 
+        state.owner = state.signedInOwner;
         state.currentMemory = response.memory;
         await refreshAll();
         setStatus('Bildet er lagret.', 'success');
@@ -672,8 +724,11 @@ function bindEvents() {
         }
     });
     elements.todayButton.addEventListener('click', goToToday);
-    elements.ownerButtons.forEach((button) => {
-        button.addEventListener('click', () => switchOwner(button.dataset.owner));
+    elements.identityButtons.forEach((button) => {
+        button.addEventListener('click', () => switchIdentity(button.dataset.identity));
+    });
+    elements.loginButtons.forEach((button) => {
+        button.addEventListener('click', () => switchIdentity(button.dataset.loginOwner));
     });
     elements.previousYearButton.addEventListener('click', () => changeYear(-1));
     elements.nextYearButton.addEventListener('click', () => changeYear(1));
@@ -716,7 +771,15 @@ function bindEvents() {
 }
 
 bindEvents();
-refreshAll().catch((error) => {
-    console.error(error);
-    setStatus(error.message, 'error');
-});
+refreshAll()
+    .then(() => {
+        if (!state.hasIdentity) {
+            elements.loginDialog.hidden = false;
+            const activeButton = elements.loginButtons.find((button) => button.dataset.loginOwner === state.signedInOwner);
+            activeButton?.focus();
+        }
+    })
+    .catch((error) => {
+        console.error(error);
+        setStatus(error.message, 'error');
+    });
