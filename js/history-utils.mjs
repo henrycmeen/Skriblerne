@@ -59,3 +59,24 @@ export function buildSameDateHistory(memories, { activeYear, activeOwner }) {
         defaultComparison: previousMemories[0] || comparisonMemories[0] || null
     };
 }
+
+export function buildSameDayOwnerOptions(memories = [], { activeOwner, monthDay, year }) {
+    const memoriesByOwner = new Map(
+        memories
+            .filter((memory) => memory.year === year && memory.monthDay === monthDay)
+            .map((memory) => [normalizeOwner(memory.owner), memory])
+    );
+    const normalizedActiveOwner = normalizeOwner(activeOwner);
+
+    return OWNER_KEYS.map((owner) => {
+        const memory = memoriesByOwner.get(owner) || null;
+
+        return {
+            owner,
+            label: OWNER_LABELS[owner],
+            hasMemory: Boolean(memory),
+            isActive: owner === normalizedActiveOwner,
+            memory
+        };
+    });
+}

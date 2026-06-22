@@ -299,6 +299,46 @@ button {
     color: var(--text-color);
 }
 
+.day-owner-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1rem;
+    min-height: 2.5rem;
+}
+
+.day-owner-button {
+    min-height: 2.5rem;
+    display: inline-grid;
+    grid-auto-flow: column;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0 0.05rem;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.day-owner-button span:last-child {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.day-owner-button--filled {
+    color: var(--text-color);
+}
+
+.day-owner-button--active {
+    border-bottom-color: var(--text-color);
+}
+
+.day-owner-button:disabled {
+    cursor: default;
+}
+
 .photo-stage {
     display: grid;
     justify-items: center;

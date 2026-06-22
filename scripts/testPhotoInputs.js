@@ -21,8 +21,10 @@ assert.doesNotMatch(libraryInput, /capture=/);
 assert.match(html, /id="photoSourceDialog"/);
 assert.match(html, /id="photoSourceContext"/);
 assert.match(html, /id="photoMeta"/);
+assert.match(html, /id="dayOwnerStrip"/);
 assert.match(html, /id="loginDialog"/);
 assert.match(html, /data-login-owner="henry"/);
 assert.match(html, /data-login-owner="ellinor"/);
+assert.match(html, /js\/app\.js\?v=20260622-20/);
 
 console.log('Validated separate photo source inputs.');

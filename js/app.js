@@ -1,11 +1,12 @@
 import { API_BASE_URL } from './config.js';
 import {
     OWNER_LABELS,
+    buildSameDayOwnerOptions,
     buildSameDateHistory,
     formatMemoryCaption,
     getMemoryKey,
     normalizeOwner
-} from './history-utils.mjs';
+} from './history-utils.mjs?v=20260622-20';
 import {
     findOwnMemory,
     formatSaveContext,
@@ -66,6 +67,7 @@ const elements = {
     cancelPhotoSourceButton: document.getElementById('cancelPhotoSourceButton'),
     statusText: document.getElementById('statusText'),
     yearStrip: document.getElementById('yearStrip'),
+    dayOwnerStrip: document.getElementById('dayOwnerStrip'),
     comparison: document.querySelector('.comparison'),
     comparisonList: document.getElementById('comparisonList'),
     comparisonPair: document.getElementById('comparisonPair'),
@@ -305,6 +307,7 @@ function render() {
     renderView();
     renderIdentity();
     renderDate();
+    renderDayOwnerStrip();
     renderPhoto();
     renderYearStrip();
     renderComparison();
@@ -378,6 +381,41 @@ function renderPhoto() {
     elements.emptyMemory.hidden = false;
     elements.replacePhotoButton.hidden = true;
     elements.photoFrame.classList.remove('photo-frame--filled');
+}
+
+function renderDayOwnerStrip() {
+    elements.dayOwnerStrip.replaceChildren();
+
+    buildSameDayOwnerOptions(state.dayMemories, {
+        activeOwner: state.owner,
+        monthDay: state.selectedMonthDay,
+        year: state.selectedYear
+    }).forEach((option) => {
+        const button = document.createElement('button');
+        const label = document.createElement('span');
+        const status = document.createElement('span');
+        const canSelect = option.hasMemory || option.owner === state.signedInOwner;
+
+        button.type = 'button';
+        button.className = 'day-owner-button';
+        button.classList.toggle('day-owner-button--active', option.isActive);
+        button.classList.toggle('day-owner-button--filled', option.hasMemory);
+        button.disabled = !canSelect;
+        button.setAttribute('aria-pressed', String(option.isActive));
+        button.setAttribute(
+            'aria-label',
+            option.hasMemory
+                ? `Vis bildet til ${option.label} for valgt dato`
+                : `${option.label} mangler bilde for valgt dato`
+        );
+
+        label.textContent = option.label;
+        status.textContent = option.hasMemory ? 'bilde' : 'mangler';
+
+        button.append(label, status);
+        button.addEventListener('click', () => switchViewingOwner(option.owner));
+        elements.dayOwnerStrip.appendChild(button);
+    });
 }
 
 function renderYearStrip() {
@@ -558,6 +596,18 @@ function groupDaysByMonth(days) {
         months.set(day.month, monthDays);
         return months;
     }, new Map());
+}
+
+async function switchViewingOwner(owner) {
+    const nextOwner = normalizeOwner(owner);
+    if (nextOwner === state.owner) {
+        return;
+    }
+
+    state.owner = nextOwner;
+    state.selectedComparisonKey = null;
+    await loadSelectedMemory();
+    render();
 }
 
 function createDayDot(day) {

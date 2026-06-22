@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+    buildSameDayOwnerOptions,
     buildSameDateHistory,
     formatMemoryCaption,
     getMemoryKey,
@@ -55,5 +56,46 @@ const fallbackHistory = buildSameDateHistory(memories, {
 });
 
 assert.equal(getMemoryKey(fallbackHistory.defaultComparison), '2028:ellinor');
+
+assert.deepEqual(
+    buildSameDayOwnerOptions([
+        { year: 2026, monthDay: '06-22', owner: 'ellinor' },
+        { year: 2026, monthDay: '06-22', owner: 'henry' },
+        { year: 2025, monthDay: '06-22', owner: 'henry' },
+        { year: 2026, monthDay: '06-23', owner: 'henry' }
+    ], {
+        activeOwner: 'ellinor',
+        monthDay: '06-22',
+        year: 2026
+    }),
+    [
+        {
+            owner: 'henry',
+            label: 'Henry',
+            hasMemory: true,
+            isActive: false,
+            memory: { year: 2026, monthDay: '06-22', owner: 'henry' }
+        },
+        {
+            owner: 'ellinor',
+            label: 'Ellinor',
+            hasMemory: true,
+            isActive: true,
+            memory: { year: 2026, monthDay: '06-22', owner: 'ellinor' }
+        }
+    ]
+);
+
+assert.deepEqual(
+    buildSameDayOwnerOptions([], {
+        activeOwner: 'henry',
+        monthDay: '06-22',
+        year: 2026
+    }).map(({ owner, hasMemory, isActive, memory }) => ({ owner, hasMemory, isActive, memory })),
+    [
+        { owner: 'henry', hasMemory: false, isActive: true, memory: null },
+        { owner: 'ellinor', hasMemory: false, isActive: false, memory: null }
+    ]
+);
 
 console.log('Validated same-date memory history.');
