@@ -6,8 +6,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "init-db": "node scripts/initDb.js",
+    "review:apply": "node scripts/applyWordReview.js",
     "test": "node scripts/validateWords.js",
-    "check": "node --check server.js && node --check js/app.js && node --check js/word-review.js && node scripts/validateWords.js"
+    "check": "node --check server.js && node --check js/app.js && node --check js/word-review.js && node --check scripts/applyWordReview.js && node scripts/validateWords.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

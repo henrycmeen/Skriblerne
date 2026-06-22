@@ -1,121 +1,101 @@
 # Skriblerne
 
-Skriblerne is a Norwegian drawing game where players get a new word to draw every day. 
+Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. Appen viser ett fast ord per kalenderdato. Ordet gjentas på samme dato hvert år, mens bilder lagres per år og dato slik at samme dag kan sammenlignes over tid.
 
-## Project Architecture
+## Produksjon
 
-The project is split into two main repositories:
-1. Main Repository (This repo) - Frontend and backend server
-2. [Skriblerne-API](https://github.com/henrycmeen/skriblerne-api) - Legacy Vercel API fallback
+- Primær URL: `https://henrymeen.no/skriblerne/`
+- Ordgjennomgang: `https://henrymeen.no/skriblerne/ordliste.html`
+- Statisk webroot på Mac mini: `/Users/henrymeen/srv/www/henrymeen/skriblerne`
+- Backend-repo på Mac mini: `/Users/henrymeen/srv/apps/skriblerne/repo`
+- Backend kjører bak Caddy under `/skriblerne/api/*`
 
-### Frontend
-- Primary production URL: https://henrymeen.no/skriblerne/
-- Static files are served by Caddy on the Mac mini
-- GitHub Pages remains available as a legacy fallback
-- Built with vanilla HTML/CSS/JavaScript using ES6 modules
-- Communicates with the backend API via fetch requests
-- Features:
-  - Daily word challenges
-  - Random word generator
-  - Admin interface for word management
+## Arkitektur
 
-### Backend
-- Node.js/Express server
-- MongoDB Atlas integration for data persistence
-- Primary production host: Mac mini behind Caddy and Cloudflare Tunnel
-- RESTful API endpoints:
-  - GET /api/word/today - Fetches today's word
-  - GET /api/word/random - Gets a random word
-  - GET /api/words - Lists all words
-  - POST /api/word - Adds a new word
-  - POST /api/words - Adds a new word
+Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 
-### Database (MongoDB Atlas)
-- Cloud-hosted MongoDB database
-- Collections:
-  - words: Stores the game words with their scheduled dates
-- Connection managed through environment variables
+- `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
+- `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
+- `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay`.
+- `index.html` og `js/app.js` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
+- `ordliste.html` og `js/word-review.js` brukes til manuell gjennomgang av alle 365 ordene.
 
-## Environment Setup
+## Funksjoner
 
-### Required Environment Variables
-```
-MONGODB_URI=your_mongodb_connection_string
-PORT=3001 (or your preferred port)
-```
+- Dagens ord med bildeopplasting.
+- Årsoversikt med 365 prikker, en for hver dato.
+- Navigasjon mellom år.
+- Opplasting og erstatning av bilde for valgt dato og år.
+- Visning av bilder fra samme dato på tvers av år.
+- Side-ved-side-sammenligning av valgt år og tidligere år.
+- Eksport og import av ordgjennomgang som JSON.
 
-## Local Development Setup
+## Kommandoer
 
-1. Clone the repository
-```bash
-git clone https://github.com/henrycmeen/Skriblerne.git
-```
-
-2. Install dependencies
 ```bash
 npm install
+npm start
+npm run check
+npm run review:apply -- <review.json>
 ```
 
-3. Set up environment variables
-- Create a .env file in the root directory
-- Add the required environment variables
+`npm run check` kjører syntakssjekk av backend/frontend-script og validerer at ordsyklusen har 365 unike datoer og 365 unike ord.
 
-4. Start the development server
+## Miljøvariabler
+
 ```bash
-npm run dev
+MONGODB_URI=...
+PORT=3024
+SKRIBLERNE_EDIT_CODE=...
 ```
 
-5. For frontend development:
-- Use a local server (like Live Server in VS Code)
-- Update js/config.js with the appropriate API URL
+`SKRIBLERNE_EDIT_CODE` kreves for bildeopplasting. Ikke legg `.env` eller faktiske hemmeligheter i repoet.
 
-## Project Structure
-```
-Skriblerne/
-├── index.html          # Main game page
-├── admin.html          # Admin interface
-├── styles.css          # Global styles
-├── server.js           # Express server setup
-├── models/
-│   └── Word.js         # MongoDB word model
-├── scripts/
-│   └── initDb.js       # Database initialization
-└── js/
-    ├── main.js         # Main game logic
-    ├── admin.js        # Admin panel logic
-    ├── config.js       # Configuration
-    └── wordService.js  # API communication
-```
+## Ordgjennomgang
 
-## Deployment
+1. Åpne `ordliste.html`.
+2. Marker hvert ord som `OK` eller `Se på`.
+3. Fyll ut `Nytt ord` for ord som skal byttes.
+4. Bruk `Eksporter gjennomgang` for å laste ned JSON.
+5. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
 
-### Frontend
-- Static files are copied to `/Users/henrymeen/srv/www/henrymeen/skriblerne` on the Mac mini.
-- Caddy serves the app under `/skriblerne`.
+Når hele listen er gjennomgått, kan review-filen valideres uten å endre repoet:
 
-### Backend
-- Runs from `/Users/henrymeen/srv/apps/skriblerne/repo` on the Mac mini.
-- Managed by `~/Library/LaunchAgents/com.henrymeen.skriblerne.plist`.
-- Caddy proxies `/skriblerne/api/*` to the local Node process.
-- Connected to MongoDB Atlas for data persistence
-
-## API Integration
-
-The frontend communicates with the backend through the API endpoints defined in `js/config.js`. Requests from `henrymeen.no/skriblerne` use the Mac mini backend. Other locations still use the Vercel-hosted API fallback.
-
-## Database Management
-
-To initialize or reset the database:
 ```bash
-npm run init-db
+npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 ```
 
-This will populate the database with initial words from ordbank.json.
+Scriptet krever at alle 365 datoer finnes i filen, at alle ord er markert, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
 
-## Contributing
+For å lage en preview-fil:
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+```bash
+npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json --output /tmp/wordCycle.js
+```
+
+For å oppdatere den faste ordsyklusen i repoet etter endelig godkjenning:
+
+```bash
+npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json --write
+npm run check
+```
+
+Commit deretter endringen i `data/wordCycle.js`, push til GitHub, pull på Mac mini og deploy statiske filer hvis frontend-cacheversjoner også er endret.
+
+## Deploy
+
+Backend deploy:
+
+```bash
+cd /Users/henrymeen/srv/apps/skriblerne/repo
+git pull --ff-only
+npm run check
+launchctl kickstart -k gui/$(id -u)/com.henrymeen.skriblerne
+```
+
+Frontend deploy når statiske filer er endret:
+
+```bash
+rsync -a index.html ordliste.html styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
+rsync -a js/app.js js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
+```
