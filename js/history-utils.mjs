@@ -25,6 +25,14 @@ export function getMemoryKey(memory) {
     return `${memory.year}:${normalizeOwner(memory.owner)}`;
 }
 
+export function formatMemoryCaption(memory) {
+    if (!memory) {
+        return '';
+    }
+
+    return `${OWNER_LABELS[normalizeOwner(memory.owner)]} · ${memory.year}`;
+}
+
 function ownerSortValue(owner) {
     const index = OWNER_KEYS.indexOf(normalizeOwner(owner));
     return index === -1 ? OWNER_KEYS.length : index;

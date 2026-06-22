@@ -2,6 +2,7 @@ import { API_BASE_URL } from './config.js';
 import {
     OWNER_LABELS,
     buildSameDateHistory,
+    formatMemoryCaption,
     getMemoryKey,
     normalizeOwner
 } from './history-utils.mjs';
@@ -50,6 +51,7 @@ const elements = {
     datePickerButton: document.getElementById('datePickerButton'),
     datePickerInput: document.getElementById('datePickerInput'),
     currentImage: document.getElementById('currentImage'),
+    photoMeta: document.getElementById('photoMeta'),
     emptyMemory: document.getElementById('emptyMemory'),
     emptyMemoryText: document.getElementById('emptyMemoryText'),
     photoFrame: document.getElementById('photoFrame'),
@@ -360,6 +362,8 @@ function renderPhoto() {
         elements.currentImage.src = state.currentMemory.imageData;
         elements.currentImage.alt = `${state.currentMemory.word}, ${ownerLabel(state.currentMemory.owner)}, ${state.currentMemory.year}`;
         elements.currentImage.hidden = false;
+        elements.photoMeta.textContent = formatMemoryCaption(state.currentMemory);
+        elements.photoMeta.hidden = false;
         elements.emptyMemory.hidden = true;
         elements.replacePhotoButton.hidden = false;
         elements.photoFrame.classList.add('photo-frame--filled');
@@ -369,6 +373,8 @@ function renderPhoto() {
     elements.currentImage.removeAttribute('src');
     elements.currentImage.alt = '';
     elements.currentImage.hidden = true;
+    elements.photoMeta.textContent = '';
+    elements.photoMeta.hidden = true;
     elements.emptyMemory.hidden = false;
     elements.replacePhotoButton.hidden = true;
     elements.photoFrame.classList.remove('photo-frame--filled');
@@ -487,7 +493,7 @@ function createComparisonFigure(memory, label) {
     figure.className = 'comparison-panel';
     image.src = memory.imageData;
     image.alt = `${memory.word}, ${ownerLabel(memory.owner)}, ${memory.year}`;
-    caption.textContent = `${label}: ${ownerLabel(memory.owner)} ${memory.year}`;
+    caption.textContent = `${label}: ${formatMemoryCaption(memory)}`;
 
     figure.append(image, caption);
     return figure;

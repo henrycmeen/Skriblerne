@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
     buildSameDateHistory,
+    formatMemoryCaption,
     getMemoryKey,
     normalizeOwner
 } from '../js/history-utils.mjs';
@@ -20,6 +21,11 @@ const memories = [
 assert.equal(normalizeOwner(' Ellinor '), 'ellinor');
 assert.equal(normalizeOwner('ukjent'), 'henry');
 assert.equal(getMemoryKey({ year: 2024, owner: 'ukjent' }), '2024:henry');
+assert.equal(
+    formatMemoryCaption({ year: 2026, owner: 'ellinor' }),
+    'Ellinor · 2026'
+);
+assert.equal(formatMemoryCaption(null), '');
 
 const history = buildSameDateHistory(memories, {
     activeYear: 2026,

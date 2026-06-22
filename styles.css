@@ -325,6 +325,12 @@ button {
     object-fit: contain;
 }
 
+.photo-meta {
+    color: var(--subtitle-color);
+    font-size: 0.875rem;
+    line-height: 1.2;
+}
+
 .empty-memory {
     display: grid;
     justify-items: center;
