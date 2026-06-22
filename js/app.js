@@ -5,8 +5,9 @@ import {
     buildSameDateHistory,
     formatMemoryCaption,
     getMemoryKey,
-    normalizeOwner
-} from './history-utils.mjs?v=20260622-20';
+    normalizeOwner,
+    pickVisibleOwnerForDay
+} from './history-utils.mjs?v=20260622-22';
 import {
     findOwnMemory,
     formatSaveContext,
@@ -651,6 +652,7 @@ function createDayDot(day) {
     button.addEventListener('click', async () => {
         clearMemoryCaches();
         state.selectedMonthDay = day.monthDay;
+        state.owner = pickVisibleOwnerForDay(memories, state.owner);
         state.view = 'today';
         state.selectedComparisonKey = null;
         await refreshAll();

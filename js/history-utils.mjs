@@ -80,3 +80,10 @@ export function buildSameDayOwnerOptions(memories = [], { activeOwner, monthDay,
         };
     });
 }
+
+export function pickVisibleOwnerForDay(memories = [], activeOwner) {
+    const normalizedActiveOwner = normalizeOwner(activeOwner);
+    const activeOwnerMemory = memories.find((memory) => normalizeOwner(memory.owner) === normalizedActiveOwner);
+
+    return normalizeOwner(activeOwnerMemory?.owner || memories[0]?.owner || normalizedActiveOwner);
+}

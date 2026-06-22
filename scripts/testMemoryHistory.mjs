@@ -4,7 +4,8 @@ import {
     buildSameDateHistory,
     formatMemoryCaption,
     getMemoryKey,
-    normalizeOwner
+    normalizeOwner,
+    pickVisibleOwnerForDay
 } from '../js/history-utils.mjs';
 
 const memories = [
@@ -97,5 +98,19 @@ assert.deepEqual(
         { owner: 'ellinor', hasMemory: false, isActive: false, memory: null }
     ]
 );
+assert.equal(
+    pickVisibleOwnerForDay([
+        { year: 2026, monthDay: '06-22', owner: 'ellinor' }
+    ], 'henry'),
+    'ellinor'
+);
+assert.equal(
+    pickVisibleOwnerForDay([
+        { year: 2026, monthDay: '06-22', owner: 'ellinor' },
+        { year: 2026, monthDay: '06-22', owner: 'henry' }
+    ], 'henry'),
+    'henry'
+);
+assert.equal(pickVisibleOwnerForDay([], 'ellinor'), 'ellinor');
 
 console.log('Validated same-date memory history.');
