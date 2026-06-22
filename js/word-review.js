@@ -17,7 +17,7 @@ import {
     needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260622-26';
+} from './review-progress.mjs?v=20260622-27';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -351,6 +351,9 @@ function renderWordRow(entry) {
         quickApproveButton.textContent = `OK av ${OWNER_LABELS[activeReviewer]}`;
         syncReviewerInputs(reviewerGroup, entry.monthDay);
         updateReviewProgress();
+        if (activeFilter === 'mine') {
+            goToNextOpenWord();
+        }
     });
 
     approvedInput.addEventListener('change', (event) => {
@@ -832,7 +835,7 @@ function goToNextOpenWord() {
         const row = document.querySelector(`[data-month-day="${nextOpenWord.monthDay}"]`);
         row?.scrollIntoView({ block: 'center', behavior: 'smooth' });
         row?.classList.add('review-word-row--focus');
-        row?.querySelector('input')?.focus({ preventScroll: true });
+        row?.querySelector('.review-quick-approve:not(:disabled), input')?.focus({ preventScroll: true });
         window.setTimeout(() => row?.classList.remove('review-word-row--focus'), 1600);
     });
 }
