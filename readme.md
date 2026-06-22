@@ -64,7 +64,7 @@ SKRIBLERNE_EDIT_CODE=...
 1. Åpne `ordliste.html`.
 2. Velg hvem du er øverst, og huk av når du har vurdert et ord.
 3. Marker hvert ord som `OK` eller `Se på`.
-4. Bruk filteret `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
+4. Bruk filteret `Mangler meg`, `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
 5. Fyll ut `Nytt ord` for ord som skal byttes.
 6. Bruk `Eksporter gjennomgang` for å laste ned JSON.
 7. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.

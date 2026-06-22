@@ -9,14 +9,16 @@ import {
     buildMonthProgress,
     hasRequiredReviewers,
     isReviewCompleteForApply,
+    markReviewer,
     monthProgressLabel,
+    needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
 } from './review-progress.mjs';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
-const REVIEW_FILTERS = new Set(['all', 'open', 'flagged', 'suggested']);
+const REVIEW_FILTERS = new Set(['all', 'open', 'mine', 'flagged', 'suggested']);
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const reviewState = loadReviewState();
@@ -185,6 +187,7 @@ function renderWordRow(entry) {
         const reviewerLabel = document.createElement('label');
         reviewerLabel.className = 'review-check review-reviewer-check';
         reviewerLabel.classList.toggle('review-reviewer-check--active', reviewer === activeReviewer);
+        reviewerLabel.dataset.reviewer = reviewer;
         reviewerLabel.innerHTML = `
             <input type="checkbox" ${reviewers[reviewer] ? 'checked' : ''}>
             <span>${OWNER_LABELS[reviewer]}</span>
@@ -194,11 +197,10 @@ function renderWordRow(entry) {
         reviewerInput.addEventListener('change', (event) => {
             const nextReviewers = normalizeReviewers(reviewState[entry.monthDay]?.reviewers);
             nextReviewers[reviewer] = event.target.checked;
-            reviewState[entry.monthDay] = {
+            setReview(entry.monthDay, {
                 ...reviewState[entry.monthDay],
                 reviewers: nextReviewers
-            };
-            saveReviewState();
+            });
             updateReviewProgress();
         });
 
@@ -209,11 +211,11 @@ function renderWordRow(entry) {
         if (event.target.checked) {
             flaggedInput.checked = false;
         }
-        reviewState[entry.monthDay] = {
+        setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
             status: event.target.checked ? 'approved' : ''
-        };
-        saveReviewState();
+        }, { markActiveReviewer: event.target.checked });
+        syncReviewerInputs(reviewerGroup, entry.monthDay);
         updateReviewProgress();
     });
 
@@ -221,11 +223,11 @@ function renderWordRow(entry) {
         if (event.target.checked) {
             approvedInput.checked = false;
         }
-        reviewState[entry.monthDay] = {
+        setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
             status: event.target.checked ? 'flagged' : ''
-        };
-        saveReviewState();
+        }, { markActiveReviewer: event.target.checked });
+        syncReviewerInputs(reviewerGroup, entry.monthDay);
         updateReviewProgress();
     });
 
@@ -236,11 +238,11 @@ function renderWordRow(entry) {
     suggestedWord.value = review.suggestedWord || '';
     suggestedWord.setAttribute('aria-label', `Nytt ord for ${entry.word}`);
     suggestedWord.addEventListener('input', (event) => {
-        reviewState[entry.monthDay] = {
+        setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
             suggestedWord: event.target.value
-        };
-        saveReviewState();
+        }, { markActiveReviewer: Boolean(event.target.value.trim()) });
+        syncReviewerInputs(reviewerGroup, entry.monthDay);
         updateReviewProgress();
     });
 
@@ -251,16 +253,32 @@ function renderWordRow(entry) {
     note.value = review.note || '';
     note.setAttribute('aria-label', `Forslag eller kommentar til ${entry.word}`);
     note.addEventListener('input', (event) => {
-        reviewState[entry.monthDay] = {
+        setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
             note: event.target.value
-        };
-        saveReviewState();
+        }, { markActiveReviewer: Boolean(event.target.value.trim()) });
+        syncReviewerInputs(reviewerGroup, entry.monthDay);
     });
 
     controls.append(approvedLabel, flaggedLabel, suggestedWord, note, reviewerGroup);
     row.append(heading, controls);
     return row;
+}
+
+function setReview(monthDay, review, options = {}) {
+    reviewState[monthDay] = options.markActiveReviewer
+        ? markReviewer(review, activeReviewer)
+        : review;
+    saveReviewState();
+}
+
+function syncReviewerInputs(reviewerGroup, monthDay) {
+    const reviewers = normalizeReviewers(reviewState[monthDay]?.reviewers);
+
+    reviewerGroup.querySelectorAll('[data-reviewer]').forEach((label) => {
+        const input = label.querySelector('input');
+        input.checked = reviewers[label.dataset.reviewer];
+    });
 }
 
 function renderIdentity() {
@@ -339,6 +357,7 @@ function updateFilterControls(words) {
     const labels = {
         all: `Alle ${words.length}`,
         open: `Uavklarte ${stats.open}`,
+        mine: `Mangler ${OWNER_LABELS[activeReviewer]} ${stats.missingByReviewer[activeReviewer]}`,
         flagged: `Se på ${stats.flagged}`,
         suggested: `Forslag ${stats.suggested}`
     };
@@ -349,6 +368,9 @@ function updateFilterControls(words) {
         button.classList.toggle('review-filter-button--active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
     });
+    elements.nextOpenButton.textContent = activeFilter === 'mine'
+        ? 'Neste som mangler meg'
+        : 'Neste uavklarte';
 }
 
 function renderMonthNav(words) {
@@ -435,6 +457,7 @@ function getReviewStats(words) {
     let duplicateCount = 0;
     let missingReviewers = 0;
     const reviewers = Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]));
+    const missingByReviewer = Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]));
 
     words.forEach((word) => {
         const review = reviewState[word.monthDay] || {};
@@ -452,6 +475,8 @@ function getReviewStats(words) {
         REQUIRED_REVIEWERS.forEach((reviewer) => {
             if (reviewReviewers[reviewer]) {
                 reviewers[reviewer] += 1;
+            } else {
+                missingByReviewer[reviewer] += 1;
             }
         });
         if (!hasRequiredReviewers(review)) {
@@ -473,6 +498,7 @@ function getReviewStats(words) {
         duplicateCount,
         flagged,
         missingReviewers,
+        missingByReviewer,
         open,
         reviewed,
         reviewers,
@@ -495,6 +521,10 @@ function matchesReviewFilter(word, filter = activeFilter) {
 
     if (filter === 'open') {
         return !isReviewCompleteForApply(review);
+    }
+
+    if (filter === 'mine') {
+        return needsReviewer(review, activeReviewer);
     }
 
     if (filter === 'flagged') {
@@ -539,14 +569,20 @@ function setActiveFilter(filter) {
 }
 
 function goToNextOpenWord() {
-    const nextOpenWord = currentWords.find((word) => matchesReviewFilter(word, 'open'));
+    const targetFilter = activeFilter === 'mine' ? 'mine' : 'open';
+    const nextOpenWord = currentWords.find((word) => matchesReviewFilter(word, targetFilter));
 
     if (!nextOpenWord) {
-        setReviewStatus('Alle ord er markert, signert av begge og flaggede ord har forslag.', 'success');
+        setReviewStatus(
+            targetFilter === 'mine'
+                ? `Alle ord er gjennomgått av ${OWNER_LABELS[activeReviewer]}.`
+                : 'Alle ord er markert, signert av begge og flaggede ord har forslag.',
+            'success'
+        );
         return;
     }
 
-    setActiveFilter('open');
+    setActiveFilter(targetFilter);
     requestAnimationFrame(() => {
         const row = document.querySelector(`[data-month-day="${nextOpenWord.monthDay}"]`);
         row?.scrollIntoView({ block: 'center', behavior: 'smooth' });

@@ -3,7 +3,9 @@ import {
     buildMonthProgress,
     hasRequiredReviewers,
     isReviewCompleteForApply,
-    monthProgressLabel
+    markReviewer,
+    monthProgressLabel,
+    needsReviewer
 } from '../js/review-progress.mjs';
 
 const words = [
@@ -28,6 +30,16 @@ assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: 
 assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: 'Nytt ord', reviewers: { henry: true, ellinor: true } }), true);
 assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: '' , reviewers: { henry: true, ellinor: true } }), false);
 assert.equal(isReviewCompleteForApply({}), false);
+assert.equal(needsReviewer({ reviewers: { henry: true } }, 'henry'), false);
+assert.equal(needsReviewer({ reviewers: { henry: true } }, 'ellinor'), true);
+assert.deepEqual(
+    markReviewer({ status: 'approved', reviewers: { ellinor: true } }, 'henry'),
+    { status: 'approved', reviewers: { henry: true, ellinor: true } }
+);
+assert.deepEqual(
+    markReviewer({ status: 'approved', reviewers: { ellinor: true } }, 'unknown'),
+    { status: 'approved', reviewers: { henry: false, ellinor: true } }
+);
 
 const progress = buildMonthProgress(words, reviewState);
 

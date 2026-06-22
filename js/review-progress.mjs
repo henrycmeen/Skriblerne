@@ -16,6 +16,27 @@ export function hasRequiredReviewers(review = {}) {
     return REQUIRED_REVIEWERS.every((reviewer) => reviewers[reviewer]);
 }
 
+export function needsReviewer(review = {}, reviewer) {
+    if (!REQUIRED_REVIEWERS.includes(reviewer)) {
+        return false;
+    }
+
+    return !normalizeReviewers(review.reviewers)[reviewer];
+}
+
+export function markReviewer(review = {}, reviewer) {
+    const reviewers = normalizeReviewers(review.reviewers);
+
+    if (REQUIRED_REVIEWERS.includes(reviewer)) {
+        reviewers[reviewer] = true;
+    }
+
+    return {
+        ...review,
+        reviewers
+    };
+}
+
 export function isReviewCompleteForApply(review = {}) {
     if (!hasRequiredReviewers(review)) {
         return false;
