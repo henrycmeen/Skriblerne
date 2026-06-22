@@ -88,6 +88,34 @@ function main() {
             'duplicate final word review'
         );
 
+        const missingDateReview = buildReview();
+        missingDateReview.words = missingDateReview.words.filter((word) => word.monthDay !== '01-01');
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'missing-date', missingDateReview)),
+            /Review-filen mangler 01-01 \(Snøfnugg\)/,
+            'review missing a required date'
+        );
+
+        const unknownDateReview = buildReview();
+        unknownDateReview.words.push({
+            monthDay: '02-29',
+            word: 'Skuddårsdag',
+            review: { status: 'approved', suggestedWord: '', note: '' }
+        });
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'unknown-date', unknownDateReview)),
+            /Ukjent dato i review-fil: 02-29/,
+            'review with unknown date'
+        );
+
+        const duplicateDateReview = buildReview();
+        duplicateDateReview.words.push(duplicateDateReview.words[0]);
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'duplicate-date', duplicateDateReview)),
+            /Duplikat dato i review-fil: 01-01/,
+            'review with duplicate date'
+        );
+
         console.log('Validated word-review apply checks.');
     } finally {
         fs.rmSync(tempDir, { force: true, recursive: true });
