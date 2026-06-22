@@ -725,6 +725,16 @@ button {
     gap: 0.75rem;
 }
 
+.review-sync-status {
+    min-height: 1.4rem;
+    color: var(--subtitle-color);
+    font-size: 0.875rem;
+}
+
+.review-sync-status[data-tone="warning"] {
+    color: var(--text-color);
+}
+
 .review-filter-bar {
     display: flex;
     flex-wrap: wrap;

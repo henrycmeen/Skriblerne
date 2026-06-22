@@ -154,3 +154,15 @@ export function buildMonthProgress(words, reviewState) {
 export function monthProgressLabel(progress, monthName) {
     return `${monthName} ${progress.complete}/${progress.total}`;
 }
+
+export function buildReviewSyncStatus(options = {}) {
+    const { hasUnsavedChanges = false, updatedLabel = '' } = options;
+    const sharedStatus = updatedLabel
+        ? `Felles sist lagret ${updatedLabel}.`
+        : 'Ingen felles gjennomgang lagret ennå.';
+    const localStatus = hasUnsavedChanges
+        ? 'Ulagrede lokale endringer.'
+        : 'Ingen ulagrede lokale endringer.';
+
+    return `${sharedStatus} ${localStatus}`;
+}

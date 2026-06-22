@@ -7,11 +7,18 @@ const script = fs.readFileSync(path.join(__dirname, '..', 'js', 'word-review.js'
 
 assert.match(html, /id="loadSharedReviewButton"/);
 assert.match(html, /id="saveSharedReviewButton"/);
-assert.match(html, /js\/word-review\.js\?v=20260622-24/);
-assert.match(script, /review-progress\.mjs\?v=20260622-23/);
+assert.match(html, /id="reviewSyncStatus"/);
+assert.match(html, /styles\.css\?v=20260622-19/);
+assert.match(html, /js\/word-review\.js\?v=20260622-25/);
+assert.match(script, /review-progress\.mjs\?v=20260622-25/);
 assert.match(script, /async function initializeWordReview/);
 assert.match(script, /loadSharedReviewState\(\{ auto: true \}\)/);
 assert.match(script, /\.then\(initializeWordReview\)/);
+assert.match(script, /REVIEW_DIRTY_STORAGE_KEY/);
+assert.match(script, /markUnsavedReviewChanges/);
+assert.match(script, /clearUnsavedReviewChanges/);
+assert.match(script, /function updateSyncStatus/);
+assert.match(script, /payload\.updatedAt/);
 assert.doesNotMatch(script, /replaceReviewState\(result\.reviewState\)/);
 assert.match(script, /mergeReviewState\(result\.reviewState\)/);
 assert.match(script, /importert og flettet fra/);

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+    buildReviewSyncStatus,
     buildMonthProgress,
     hasRequiredReviewers,
     isReviewCompleteForApply,
@@ -116,5 +117,20 @@ assert.deepEqual(progress, [
 ]);
 assert.equal(monthProgressLabel(progress[0], 'januar'), 'januar 2/3');
 assert.equal(monthProgressLabel(progress[1], 'februar'), 'februar 0/2');
+assert.equal(
+    buildReviewSyncStatus(),
+    'Ingen felles gjennomgang lagret ennå. Ingen ulagrede lokale endringer.'
+);
+assert.equal(
+    buildReviewSyncStatus({ updatedLabel: '22. juni 2026 kl. 18:03' }),
+    'Felles sist lagret 22. juni 2026 kl. 18:03. Ingen ulagrede lokale endringer.'
+);
+assert.equal(
+    buildReviewSyncStatus({
+        hasUnsavedChanges: true,
+        updatedLabel: '22. juni 2026 kl. 18:03'
+    }),
+    'Felles sist lagret 22. juni 2026 kl. 18:03. Ulagrede lokale endringer.'
+);
 
 console.log('Validated word-review month progress.');

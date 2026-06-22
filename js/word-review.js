@@ -6,6 +6,7 @@ import {
     readStoredIdentity
 } from './identity-utils.mjs';
 import {
+    buildReviewSyncStatus,
     buildMonthProgress,
     hasRequiredReviewers,
     isReviewCompleteForApply,
@@ -15,19 +16,32 @@ import {
     needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260622-23';
+} from './review-progress.mjs?v=20260622-25';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
+const REVIEW_DIRTY_STORAGE_KEY = 'skriblerne-word-review-dirty-v1';
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
 const REVIEW_FILTERS = new Set(['all', 'open', 'mine', 'flagged', 'suggested']);
 
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
+const sharedDateFormatter = new Intl.DateTimeFormat('nb-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+});
+const sharedTimeFormatter = new Intl.DateTimeFormat('nb-NO', {
+    hour: '2-digit',
+    minute: '2-digit'
+});
 const reviewState = loadReviewState();
 let activeFilter = loadReviewFilter();
 let activeReviewer = readStoredIdentity(localStorage) || 'henry';
 let firstPassCandidates = null;
 let currentWords = [];
+let hasUnsavedReviewChanges = Object.keys(reviewState).length > 0 &&
+    localStorage.getItem(REVIEW_DIRTY_STORAGE_KEY) === 'true';
+let sharedReviewUpdatedAt = null;
 
 const elements = {
     identityLabel: document.getElementById('identityLabel'),
@@ -35,6 +49,7 @@ const elements = {
     months: document.getElementById('reviewMonths'),
     summary: document.getElementById('reviewSummary'),
     readiness: document.getElementById('reviewReadiness'),
+    syncStatus: document.getElementById('reviewSyncStatus'),
     status: document.getElementById('reviewStatus'),
     firstPassButton: document.getElementById('firstPassButton'),
     loadSharedButton: document.getElementById('loadSharedReviewButton'),
@@ -75,6 +90,44 @@ function loadReviewFilter() {
 
 function saveReviewFilter() {
     localStorage.setItem(REVIEW_FILTER_STORAGE_KEY, activeFilter);
+}
+
+function markUnsavedReviewChanges() {
+    hasUnsavedReviewChanges = true;
+    localStorage.setItem(REVIEW_DIRTY_STORAGE_KEY, 'true');
+    updateSyncStatus();
+}
+
+function clearUnsavedReviewChanges() {
+    hasUnsavedReviewChanges = false;
+    localStorage.removeItem(REVIEW_DIRTY_STORAGE_KEY);
+    updateSyncStatus();
+}
+
+function updateSharedReviewTimestamp(updatedAt) {
+    sharedReviewUpdatedAt = updatedAt || null;
+    updateSyncStatus();
+}
+
+function formatSharedReviewTimestamp(updatedAt) {
+    if (!updatedAt) {
+        return '';
+    }
+
+    const date = new Date(updatedAt);
+    if (Number.isNaN(date.valueOf())) {
+        return '';
+    }
+
+    return `${sharedDateFormatter.format(date)} kl. ${sharedTimeFormatter.format(date)}`;
+}
+
+function updateSyncStatus() {
+    elements.syncStatus.textContent = buildReviewSyncStatus({
+        hasUnsavedChanges: hasUnsavedReviewChanges,
+        updatedLabel: formatSharedReviewTimestamp(sharedReviewUpdatedAt)
+    });
+    elements.syncStatus.dataset.tone = hasUnsavedReviewChanges ? 'warning' : 'neutral';
 }
 
 function replaceReviewState(nextState) {
@@ -181,6 +234,7 @@ function render(words) {
     currentWords = words;
     elements.months.replaceChildren();
     renderIdentity();
+    updateSyncStatus();
 
     groupByMonth(words).forEach((monthWords, month) => {
         const section = document.createElement('section');
@@ -329,6 +383,7 @@ function renderWordRow(entry) {
             note: event.target.value
         }, { markActiveReviewer: Boolean(event.target.value.trim()) });
         syncReviewerInputs(reviewerGroup, entry.monthDay);
+        updateReviewProgress();
     });
 
     controls.append(approvedLabel, flaggedLabel, suggestedWord, note, reviewerGroup);
@@ -341,6 +396,7 @@ function setReview(monthDay, review, options = {}) {
         ? markReviewer(review, activeReviewer)
         : review;
     saveReviewState();
+    markUnsavedReviewChanges();
 }
 
 function syncReviewerInputs(reviewerGroup, monthDay) {
@@ -488,10 +544,12 @@ async function loadSharedReviewState(options = {}) {
             setReviewStatus('Henter felles gjennomgang.');
         }
         const payload = await fetchSharedReview();
+        updateSharedReviewTimestamp(payload.updatedAt);
         const imported = importReviewPayload({ reviewState: payload.reviewState || {} }, currentWords, {
             allowEmpty: true
         });
         if (imported.reviewed === 0 && Object.keys(reviewState).length > 0) {
+            markUnsavedReviewChanges();
             if (!auto) {
                 setReviewStatus('Felles gjennomgang er tom. Lokal gjennomgang er beholdt.', 'neutral');
             }
@@ -550,6 +608,8 @@ async function saveSharedReviewState() {
             allowEmpty: true
         });
 
+        updateSharedReviewTimestamp(payload.updatedAt);
+        clearUnsavedReviewChanges();
         replaceReviewState(imported.reviewState);
         render(currentWords);
         setReviewStatus('Felles gjennomgang er lagret og flettet.', 'success');
@@ -596,6 +656,7 @@ async function applyFirstPassCandidates() {
         }
 
         mergeReviewState(nextState);
+        markUnsavedReviewChanges();
         setActiveFilter('flagged');
         render(currentWords);
         setReviewStatus(`${applied} første-pass-kandidater lagt til som Se på.`, 'success');
@@ -793,6 +854,7 @@ async function handleImportSelected(event) {
         const result = importReviewPayload(payload, currentWords);
 
         mergeReviewState(result.reviewState);
+        markUnsavedReviewChanges();
         render(currentWords);
         setReviewStatus(
             `${result.reviewed} ${result.reviewed === 1 ? 'markering' : 'markeringer'} importert og flettet fra ${file.name}.`,
