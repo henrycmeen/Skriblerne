@@ -12,6 +12,7 @@ let currentWords = [];
 const elements = {
     months: document.getElementById('reviewMonths'),
     summary: document.getElementById('reviewSummary'),
+    readiness: document.getElementById('reviewReadiness'),
     status: document.getElementById('reviewStatus'),
     importButton: document.getElementById('importReviewButton'),
     importInput: document.getElementById('importReviewInput'),
@@ -92,6 +93,7 @@ function render(words) {
     });
 
     updateSummary(words);
+    updateReadiness(words);
     updateFilterControls(words);
     applyReviewFilter();
     elements.importButton.disabled = false;
@@ -142,6 +144,7 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateReadiness(currentWords);
         updateFilterControls(currentWords);
         applyReviewFilter();
     });
@@ -156,6 +159,7 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateReadiness(currentWords);
         updateFilterControls(currentWords);
         applyReviewFilter();
     });
@@ -173,6 +177,7 @@ function renderWordRow(entry) {
         };
         saveReviewState();
         updateSummary(currentWords);
+        updateReadiness(currentWords);
         updateFilterControls(currentWords);
         applyReviewFilter();
     });
@@ -210,6 +215,28 @@ function updateSummary(words) {
             ? ''
             : `Filteret viser ${filteredCount} ${filteredCount === 1 ? 'ord' : 'ord'}.`
     ].filter(Boolean).join(' ');
+}
+
+function updateReadiness(words) {
+    const stats = getReviewStats(words);
+    const blockers = [];
+
+    if (stats.open > 0) {
+        blockers.push(`${stats.open} ${stats.open === 1 ? 'uavklart ord' : 'uavklarte ord'}`);
+    }
+
+    if (stats.duplicateCount > 0) {
+        blockers.push(`${stats.duplicateCount} ${stats.duplicateCount === 1 ? 'duplikat' : 'duplikater'}`);
+    }
+
+    if (blockers.length === 0 && stats.reviewed === words.length) {
+        elements.readiness.textContent = 'Klar for apply-scriptet.';
+        elements.readiness.dataset.tone = 'success';
+        return;
+    }
+
+    elements.readiness.textContent = `Ikke klar: ${blockers.join(' og ')} gjenstår.`;
+    elements.readiness.dataset.tone = 'neutral';
 }
 
 function updateFilterControls(words) {
@@ -328,6 +355,7 @@ function setActiveFilter(filter) {
     activeFilter = filter;
     saveReviewFilter();
     updateSummary(currentWords);
+    updateReadiness(currentWords);
     updateFilterControls(currentWords);
     applyReviewFilter();
 }

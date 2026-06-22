@@ -21,6 +21,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - `index.html` og `js/app.js` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
 - `ordliste.html` og `js/word-review.js` brukes til manuell gjennomgang av alle 365 ordene.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
+- Ordgjennomgangen viser når eksporten er klar for `scripts/applyWordReview.js`.
 
 ## Funksjoner
 

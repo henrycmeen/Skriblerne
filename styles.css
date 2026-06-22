@@ -618,6 +618,17 @@ button {
     color: var(--subtitle-color);
 }
 
+.review-readiness {
+    min-height: 1.5rem;
+    color: var(--subtitle-color);
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.review-readiness[data-tone="success"] {
+    color: var(--success-color);
+}
+
 .review-actions {
     display: flex;
     flex-wrap: wrap;
