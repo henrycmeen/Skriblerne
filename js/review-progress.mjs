@@ -63,13 +63,21 @@ function hasReviewContent(review) {
 function mergeReview(existingReview = {}, incomingReview = {}) {
     const existing = normalizeReview(existingReview);
     const incoming = normalizeReview(incomingReview);
-    const status = existing.status === 'flagged' || incoming.status === 'flagged'
-        ? 'flagged'
-        : incoming.status || existing.status;
+    const incomingConsensusApproval = incoming.status === 'approved' && hasRequiredReviewers(incoming);
+    const shouldKeepFlagged = existing.status === 'flagged' || incoming.status === 'flagged';
+    const status = incomingConsensusApproval
+        ? 'approved'
+        : shouldKeepFlagged
+            ? 'flagged'
+            : incoming.status || existing.status;
     const merged = {
         status,
-        suggestedWord: incoming.suggestedWord || existing.suggestedWord,
-        note: incoming.note || existing.note,
+        suggestedWord: incomingConsensusApproval
+            ? incoming.suggestedWord
+            : incoming.suggestedWord || existing.suggestedWord,
+        note: incomingConsensusApproval
+            ? incoming.note
+            : incoming.note || existing.note,
         reviewers: Object.fromEntries(
             REQUIRED_REVIEWERS.map((reviewer) => [
                 reviewer,

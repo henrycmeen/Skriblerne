@@ -104,6 +104,10 @@ assert.deepEqual(
                 status: 'flagged',
                 suggestedWord: 'Månespor',
                 reviewers: { henry: true }
+            },
+            '01-04': {
+                status: 'approved',
+                reviewers: { henry: true, ellinor: true }
             }
         }
     ),
@@ -125,6 +129,41 @@ assert.deepEqual(
             suggestedWord: 'Månespor',
             note: '',
             reviewers: { henry: true, ellinor: false }
+        },
+        '01-04': {
+            status: 'approved',
+            suggestedWord: '',
+            note: '',
+            reviewers: { henry: true, ellinor: true }
+        }
+    }
+);
+
+assert.deepEqual(
+    mergeReviewStates(
+        {
+            '01-04': {
+                status: 'flagged',
+                suggestedWord: 'Gammelt forslag',
+                note: 'Begge har nå sagt OK',
+                reviewers: { henry: false, ellinor: true }
+            }
+        },
+        {
+            '01-04': {
+                status: 'approved',
+                suggestedWord: '',
+                note: '',
+                reviewers: { henry: true, ellinor: true }
+            }
+        }
+    ),
+    {
+        '01-04': {
+            status: 'approved',
+            suggestedWord: '',
+            note: '',
+            reviewers: { henry: true, ellinor: true }
         }
     }
 );

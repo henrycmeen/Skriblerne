@@ -7,7 +7,8 @@ const script = fs.readFileSync(path.join(__dirname, '..', 'js', 'word-review.js'
 
 assert.match(html, /id="loadSharedReviewButton"/);
 assert.match(html, /id="saveSharedReviewButton"/);
-assert.match(html, /js\/word-review\.js\?v=20260622-22/);
+assert.match(html, /js\/word-review\.js\?v=20260622-23/);
+assert.match(script, /review-progress\.mjs\?v=20260622-23/);
 assert.match(script, /async function initializeWordReview/);
 assert.match(script, /loadSharedReviewState\(\{ auto: true \}\)/);
 assert.match(script, /\.then\(initializeWordReview\)/);

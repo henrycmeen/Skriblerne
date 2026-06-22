@@ -79,6 +79,34 @@ assert.deepEqual(
         }
     }
 );
+assert.deepEqual(
+    mergeReviewStates(
+        {
+            '01-04': {
+                status: 'flagged',
+                suggestedWord: 'Gammelt forslag',
+                note: 'Begge har nå sagt OK',
+                reviewers: { ellinor: true }
+            }
+        },
+        {
+            '01-04': {
+                status: 'approved',
+                suggestedWord: '',
+                note: '',
+                reviewers: { henry: true, ellinor: true }
+            }
+        }
+    ),
+    {
+        '01-04': {
+            status: 'approved',
+            suggestedWord: '',
+            note: '',
+            reviewers: { henry: true, ellinor: true }
+        }
+    }
+);
 
 const progress = buildMonthProgress(words, reviewState);
 

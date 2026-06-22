@@ -15,7 +15,7 @@ import {
     needsReviewer,
     normalizeReviewers,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs';
+} from './review-progress.mjs?v=20260622-23';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
