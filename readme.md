@@ -43,7 +43,7 @@ npm run check
 npm run review:apply -- <review.json>
 ```
 
-`npm run check` kjører syntakssjekk av backend/frontend-script og validerer at ordsyklusen har 365 unike datoer og 365 unike ord.
+`npm run check` kjører syntakssjekk av backend/frontend-script, validerer at ordsyklusen har 365 unike datoer og 365 unike ord, og tester at review-eksporter stoppes ved manglende status, manglende nytt ord og duplikate sluttord.
 
 ## Miljøvariabler
 
