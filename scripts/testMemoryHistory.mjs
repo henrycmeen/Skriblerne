@@ -49,7 +49,21 @@ assert.deepEqual(
     ]
 );
 assert.equal(history.comparisonMemories.length, 8);
+assert.deepEqual(history.relatedMemories.map(getMemoryKey), history.comparisonMemories.map(getMemoryKey));
+assert.doesNotMatch(history.relatedMemories.map(getMemoryKey).join(','), /2026:henry/);
 assert.equal(getMemoryKey(history.defaultComparison), '2025:henry');
+
+const activeOnlyHistory = buildSameDateHistory([
+    { year: 2026, owner: 'henry' }
+], {
+    activeYear: 2026,
+    activeOwner: 'henry'
+});
+
+assert.deepEqual(activeOnlyHistory.timeline.map(getMemoryKey), ['2026:henry']);
+assert.deepEqual(activeOnlyHistory.relatedMemories, []);
+assert.deepEqual(activeOnlyHistory.comparisonMemories, []);
+assert.equal(activeOnlyHistory.defaultComparison, null);
 
 const fallbackHistory = buildSameDateHistory(memories, {
     activeYear: 2021,

@@ -49,14 +49,16 @@ export function compareSameDateMemories(a, b) {
 export function buildSameDateHistory(memories, { activeYear, activeOwner }) {
     const activeKey = `${activeYear}:${normalizeOwner(activeOwner)}`;
     const timeline = [...memories].sort(compareSameDateMemories);
-    const comparisonMemories = timeline.filter((memory) => getMemoryKey(memory) !== activeKey);
-    const previousMemories = comparisonMemories.filter((memory) => memory.year < activeYear);
+    const relatedMemories = timeline.filter((memory) => getMemoryKey(memory) !== activeKey);
+    const comparisonMemories = relatedMemories;
+    const previousMemories = relatedMemories.filter((memory) => memory.year < activeYear);
 
     return {
         activeKey,
         timeline,
+        relatedMemories,
         comparisonMemories,
-        defaultComparison: previousMemories[0] || comparisonMemories[0] || null
+        defaultComparison: previousMemories[0] || relatedMemories[0] || null
     };
 }
 

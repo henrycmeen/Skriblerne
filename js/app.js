@@ -7,7 +7,7 @@ import {
     getMemoryKey,
     normalizeOwner,
     pickVisibleOwnerForDay
-} from './history-utils.mjs?v=20260622-22';
+} from './history-utils.mjs?v=20260622-23';
 import {
     findOwnMemory,
     formatPhotoActionLabel,
@@ -432,7 +432,7 @@ function renderYearStrip() {
         activeOwner: state.owner
     });
 
-    if (history.timeline.length === 0) {
+    if (history.relatedMemories.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'muted';
         empty.textContent = 'Ingen tidligere bilder på denne datoen.';
@@ -440,7 +440,7 @@ function renderYearStrip() {
         return;
     }
 
-    history.timeline.forEach((memory) => {
+    history.relatedMemories.forEach((memory) => {
         const button = document.createElement('button');
         const image = document.createElement('img');
         const label = document.createElement('span');
@@ -449,7 +449,6 @@ function renderYearStrip() {
 
         button.type = 'button';
         button.className = 'year-memory';
-        button.classList.toggle('year-memory--active', key === history.activeKey);
         button.setAttribute('aria-label', `Åpne ${memory.word} fra ${ownerName} ${memory.year}`);
 
         image.src = memory.thumbnailData;
