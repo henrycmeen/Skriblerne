@@ -19,6 +19,7 @@ const {
     formatDateForYear,
     getMonthDayFromDate,
     getWordForMonthDay,
+    isFutureCycleDate,
     isValidMonthDay
 } = require('./data/wordCycle');
 
@@ -322,6 +323,10 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
 
         if (!word) {
             return res.status(400).json({ error: 'Ugyldig dato' });
+        }
+
+        if (isFutureCycleDate(year, monthDay)) {
+            return res.status(400).json({ error: 'Du kan ikke lagre bilde for en fremtidig dato.' });
         }
 
         if (!owner) {

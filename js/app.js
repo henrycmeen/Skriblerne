@@ -145,6 +145,11 @@ function formatDateInputValue(year, monthDay) {
     return `${year}-${monthDay}`;
 }
 
+function selectedDateIsFuture() {
+    return formatDateInputValue(state.selectedYear, state.selectedMonthDay) >
+        formatDateInputValue(today.getFullYear(), toMonthDay(today));
+}
+
 function parseDateInputValue(value) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
     if (!match) {
@@ -229,6 +234,11 @@ function resolveEditCode(code) {
 }
 
 function openPhotoSourceDialog() {
+    if (selectedDateIsFuture()) {
+        setStatus('Du kan ikke legge inn bilde for en fremtidig dato.', 'error');
+        return;
+    }
+
     elements.photoSourceHeading.textContent = photoActionLabel();
     elements.photoSourceContext.textContent = saveContextText();
     elements.photoSourceDialog.hidden = false;
@@ -356,15 +366,21 @@ function renderDate() {
         : `${label} ${state.selectedYear}`;
     elements.todayHeading.textContent = day?.word || 'Ingen ord';
     elements.datePickerInput.value = formatDateInputValue(state.selectedYear, state.selectedMonthDay);
+    elements.datePickerInput.max = formatDateInputValue(today.getFullYear(), toMonthDay(today));
     elements.overviewHeading.textContent = String(state.selectedYear);
 }
 
 function renderPhoto() {
+    const isFutureDate = selectedDateIsFuture();
     const uploadLabel = photoActionLabel();
 
-    elements.emptyMemoryText.textContent = uploadLabel;
+    elements.emptyMemoryText.textContent = isFutureDate
+        ? 'Bilde kan legges inn når datoen kommer'
+        : uploadLabel;
+    elements.addPhotoButton.disabled = isFutureDate;
     elements.addPhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
     elements.replacePhotoButton.textContent = uploadLabel;
+    elements.replacePhotoButton.disabled = isFutureDate;
     elements.replacePhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
 
     if (state.currentMemory?.imageData) {
@@ -734,6 +750,11 @@ async function handlePhotoSelected(event) {
     }
 
     try {
+        if (selectedDateIsFuture()) {
+            setStatus('Du kan ikke legge inn bilde for en fremtidig dato.', 'error');
+            return;
+        }
+
         if (!state.editCode) {
             const code = await requestEditCode();
             if (!code) {

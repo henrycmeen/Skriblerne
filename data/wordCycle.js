@@ -482,6 +482,18 @@ function isValidMonthDay(monthDay) {
     return WORD_BY_MONTH_DAY.has(monthDay);
 }
 
+function isFutureCycleDate(year, monthDay, referenceDate = new Date()) {
+    const normalizedMonthDay = normalizeCycleMonthDay(monthDay);
+    const referenceYear = referenceDate.getFullYear();
+    const referenceMonthDay = getMonthDayFromDate(referenceDate);
+
+    if (year !== referenceYear) {
+        return year > referenceYear;
+    }
+
+    return normalizedMonthDay > referenceMonthDay;
+}
+
 function formatDateForYear(year, monthDay) {
     return `${year}-${monthDay}`;
 }
@@ -493,6 +505,7 @@ module.exports = {
     formatDateForYear,
     getMonthDayFromDate,
     getWordForMonthDay,
+    isFutureCycleDate,
     isValidMonthDay,
     normalizeCycleMonthDay
 };

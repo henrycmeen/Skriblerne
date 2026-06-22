@@ -405,6 +405,18 @@ button {
     color: var(--text-color);
 }
 
+.add-photo-button:disabled,
+.replace-photo-button:disabled {
+    color: var(--subtitle-color);
+    cursor: default;
+}
+
+.add-photo-button:disabled:hover,
+.replace-photo-button:disabled:hover {
+    background: transparent;
+    color: var(--subtitle-color);
+}
+
 .status-text {
     min-height: 1.4rem;
 }

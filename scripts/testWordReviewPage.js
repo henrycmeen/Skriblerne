@@ -13,7 +13,7 @@ assert.match(html, /id="loadSharedReviewButton"/);
 assert.match(html, /id="saveSharedReviewButton"/);
 assert.match(html, /id="reviewSyncStatus"/);
 assert.equal(reviewStylesVersion, indexStylesVersion);
-assert.equal(reviewStylesVersion, '20260622-24');
+assert.equal(reviewStylesVersion, '20260622-25');
 assert.match(html, /data-review-filter="missing-both"/);
 assert.match(html, /data-review-filter="missing-henry"/);
 assert.match(html, /data-review-filter="missing-ellinor"/);

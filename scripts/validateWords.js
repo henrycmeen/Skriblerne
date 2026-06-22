@@ -3,6 +3,7 @@ const {
     WORD_CYCLE,
     getMonthDayFromDate,
     getWordForMonthDay,
+    isFutureCycleDate,
     isValidMonthDay,
     normalizeCycleMonthDay
 } = require('../data/wordCycle');
@@ -48,6 +49,18 @@ if (!getWordForMonthDay('02-28')) {
 
 if (isValidMonthDay('02-29')) {
     errors.push('Expected explicit 02-29 to remain outside the stored 365-date cycle');
+}
+
+if (!isFutureCycleDate(2026, '06-23', new Date(2026, 5, 22))) {
+    errors.push('Expected 2026-06-23 to be future when today is 2026-06-22');
+}
+
+if (isFutureCycleDate(2026, '06-22', new Date(2026, 5, 22))) {
+    errors.push('Expected today to be uploadable');
+}
+
+if (isFutureCycleDate(2025, '12-31', new Date(2026, 5, 22))) {
+    errors.push('Expected previous years to stay uploadable');
 }
 
 if (errors.length > 0) {
