@@ -40,6 +40,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 npm install
 npm start
 npm run check
+npm run review:status -- <review.json>
 npm run review:apply -- <review.json>
 ```
 
@@ -67,10 +68,14 @@ SKRIBLERNE_EDIT_CODE=...
 Når hele listen er gjennomgått, kan review-filen valideres uten å endre repoet:
 
 ```bash
+npm run review:status -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
+```
+
+```bash
 npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 ```
 
-Scriptet krever at alle 365 datoer finnes i filen, at alle ord er markert, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
+`review:status` viser fremdrift og om filen er klar for apply. `review:apply` krever at alle 365 datoer finnes i filen, at alle ord er markert, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
 
 For å lage en preview-fil:
 

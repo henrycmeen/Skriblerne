@@ -6,6 +6,7 @@ const path = require('path');
 const { WORD_CYCLE } = require('../data/wordCycle');
 
 const APPLY_SCRIPT = path.join(__dirname, 'applyWordReview.js');
+const STATUS_SCRIPT = path.join(__dirname, 'reviewStatus.js');
 
 function buildReview(overrides = {}) {
     return {
@@ -30,6 +31,13 @@ function writeReview(tempDir, name, payload) {
 
 function runApply(reviewPath) {
     return spawnSync(process.execPath, [APPLY_SCRIPT, reviewPath], {
+        cwd: path.join(__dirname, '..'),
+        encoding: 'utf8'
+    });
+}
+
+function runStatus(reviewPath) {
+    return spawnSync(process.execPath, [STATUS_SCRIPT, reviewPath], {
         cwd: path.join(__dirname, '..'),
         encoding: 'utf8'
     });
@@ -60,6 +68,20 @@ function main() {
             '01-01': { status: 'flagged', suggestedWord: 'Vinterstjerne' }
         });
         assertPass(runApply(writeReview(tempDir, 'valid', validReview)), 'valid review');
+        const validReviewStatus = runStatus(writeReview(tempDir, 'valid-status', validReview));
+        assertPass(validReviewStatus, 'valid review status');
+        assert.match(validReviewStatus.stdout, /Markert: 365\/365/);
+        assert.match(validReviewStatus.stdout, /Klar for apply: ja/);
+
+        const partialReview = buildReview({
+            '01-01': { status: 'flagged', suggestedWord: '' },
+            '01-02': { status: '' }
+        });
+        const partialReviewStatus = runStatus(writeReview(tempDir, 'partial-status', partialReview));
+        assertPass(partialReviewStatus, 'partial review status');
+        assert.match(partialReviewStatus.stdout, /Markert: 364\/365/);
+        assert.match(partialReviewStatus.stdout, /Uavklarte: 2/);
+        assert.match(partialReviewStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
             '01-01': { status: '' }
