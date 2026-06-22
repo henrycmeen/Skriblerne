@@ -7,6 +7,7 @@ const REVIEW_FILTERS = new Set(['all', 'open', 'flagged', 'suggested']);
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const reviewState = loadReviewState();
 let activeFilter = loadReviewFilter();
+let firstPassCandidates = null;
 let currentWords = [];
 
 const elements = {
@@ -14,6 +15,7 @@ const elements = {
     summary: document.getElementById('reviewSummary'),
     readiness: document.getElementById('reviewReadiness'),
     status: document.getElementById('reviewStatus'),
+    firstPassButton: document.getElementById('firstPassButton'),
     importButton: document.getElementById('importReviewButton'),
     importInput: document.getElementById('importReviewInput'),
     exportButton: document.getElementById('exportReviewButton'),
@@ -50,12 +52,31 @@ function replaceReviewState(nextState) {
     saveReviewState();
 }
 
+function mergeReviewState(nextState) {
+    Object.assign(reviewState, nextState);
+    saveReviewState();
+}
+
 async function fetchWords() {
     const response = await fetch(`${API_BASE_URL}/api/words`, { cache: 'no-store' });
     if (!response.ok) {
         throw new Error('Kunne ikke hente ordlisten.');
     }
     return response.json();
+}
+
+async function fetchFirstPassCandidates() {
+    if (firstPassCandidates) {
+        return firstPassCandidates;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/data/wordReviewCandidates.json`, { cache: 'no-store' });
+    if (!response.ok) {
+        throw new Error('Kunne ikke hente første-pass-listen.');
+    }
+
+    firstPassCandidates = await response.json();
+    return firstPassCandidates;
 }
 
 function groupByMonth(words) {
@@ -96,6 +117,7 @@ function render(words) {
     updateReadiness(words);
     updateFilterControls(words);
     applyReviewFilter();
+    elements.firstPassButton.disabled = false;
     elements.importButton.disabled = false;
     elements.exportButton.disabled = false;
     elements.nextOpenButton.disabled = false;
@@ -259,6 +281,51 @@ function updateFilterControls(words) {
 function setReviewStatus(message, tone = 'neutral') {
     elements.status.textContent = message;
     elements.status.dataset.tone = tone;
+}
+
+async function applyFirstPassCandidates() {
+    if (!Array.isArray(currentWords) || currentWords.length === 0) {
+        setReviewStatus('Ordlisten må være lastet før første-pass kan brukes.', 'error');
+        return;
+    }
+
+    try {
+        const candidates = await fetchFirstPassCandidates();
+        const validDates = new Set(currentWords.map((word) => word.monthDay));
+        const nextState = {};
+        let applied = 0;
+
+        Object.entries(candidates).forEach(([monthDay, candidate]) => {
+            if (!validDates.has(monthDay)) {
+                return;
+            }
+
+            const existingReview = reviewState[monthDay] || {};
+            if (existingReview.status || existingReview.suggestedWord || existingReview.note) {
+                return;
+            }
+
+            nextState[monthDay] = {
+                status: 'flagged',
+                suggestedWord: candidate.suggestedWord || '',
+                note: candidate.note || ''
+            };
+            applied += 1;
+        });
+
+        if (applied === 0) {
+            setReviewStatus('Ingen nye første-pass-kandidater å legge til.', 'neutral');
+            return;
+        }
+
+        mergeReviewState(nextState);
+        setActiveFilter('flagged');
+        render(currentWords);
+        setReviewStatus(`${applied} første-pass-kandidater lagt til som Se på.`, 'success');
+    } catch (error) {
+        console.error(error);
+        setReviewStatus(error.message || 'Kunne ikke starte første-pass.', 'error');
+    }
 }
 
 function getReviewStats(words) {
@@ -473,6 +540,7 @@ function sanitizeReview(review) {
     return { status, suggestedWord, note };
 }
 
+elements.firstPassButton.addEventListener('click', applyFirstPassCandidates);
 elements.importButton.addEventListener('click', () => elements.importInput.click());
 elements.importInput.addEventListener('change', handleImportSelected);
 elements.nextOpenButton.addEventListener('click', goToNextOpenWord);

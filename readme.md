@@ -66,7 +66,9 @@ SKRIBLERNE_EDIT_CODE=...
 5. Bruk `Eksporter gjennomgang` for å laste ned JSON.
 6. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
 
-For å starte med en maskinlaget første-pass liste over ord som bør vurderes:
+For å starte med en maskinlaget første-pass liste over ord som bør vurderes, trykk `Start første-pass` i `ordliste.html`.
+
+Den samme listen kan også lages som JSON fra terminal:
 
 ```bash
 npm run review:first-pass -- --output /tmp/skriblerne-forste-pass.json
@@ -117,4 +119,5 @@ Frontend deploy når statiske filer er endret:
 ```bash
 rsync -a index.html ordliste.html styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
 rsync -a js/app.js js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
+rsync -a data/wordReviewCandidates.json /Users/henrymeen/srv/www/henrymeen/skriblerne/data/
 ```

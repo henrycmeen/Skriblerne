@@ -6,7 +6,7 @@
     <meta name="description" content="Skriblerne - gjennomgang av 365 faste ord">
     <title>Ordlisten - Skriblerne</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-11">
+    <link rel="stylesheet" href="styles.css?v=20260622-12">
 </head>
 <body>
     <div class="review-shell">
@@ -27,6 +27,7 @@
                 <p id="reviewSummary">Laster ordlisten.</p>
                 <p class="review-readiness" id="reviewReadiness" role="status" aria-live="polite">Sjekker gjennomgangen.</p>
                 <div class="review-actions">
+                    <button class="review-export-button" id="firstPassButton" type="button" disabled>Start første-pass</button>
                     <button class="review-export-button" id="importReviewButton" type="button" disabled>Importer gjennomgang</button>
                     <button class="review-export-button" id="exportReviewButton" type="button" disabled>Eksporter gjennomgang</button>
                 </div>
@@ -44,6 +45,6 @@
             <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
         </main>
     </div>
-    <script type="module" src="js/word-review.js?v=20260622-10"></script>
+    <script type="module" src="js/word-review.js?v=20260622-12"></script>
 </body>
 </html>
