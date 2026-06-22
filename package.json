@@ -9,8 +9,8 @@
     "review:apply": "node scripts/applyWordReview.js",
     "review:first-pass": "node scripts/createFirstPassReview.js",
     "review:status": "node scripts/reviewStatus.js",
-    "test": "node scripts/validateWords.js && node scripts/testWordReviewValidation.js && node scripts/testMemoryOwnership.js && node scripts/testMemoryHistory.mjs",
-    "check": "node --check server.js && node --check js/app.js && node --check js/history-utils.mjs && node --check js/word-review.js && node --check scripts/applyWordReview.js && node --check scripts/createFirstPassReview.js && node --check scripts/reviewStatus.js && node --check scripts/testWordReviewValidation.js && node --check scripts/testMemoryOwnership.js && node --check scripts/testMemoryHistory.mjs && npm test"
+    "test": "node scripts/validateWords.js && node scripts/testWordReviewValidation.js && node scripts/testMemoryOwnership.js && node scripts/testMemoryHistory.mjs && node scripts/testWordReviewProgress.mjs",
+    "check": "node --check server.js && node --check js/app.js && node --check js/history-utils.mjs && node --check js/review-progress.mjs && node --check js/word-review.js && node --check scripts/applyWordReview.js && node --check scripts/createFirstPassReview.js && node --check scripts/reviewStatus.js && node --check scripts/testWordReviewValidation.js && node --check scripts/testMemoryOwnership.js && node --check scripts/testMemoryHistory.mjs && node --check scripts/testWordReviewProgress.mjs && npm test"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

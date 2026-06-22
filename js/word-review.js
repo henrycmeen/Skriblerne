@@ -1,4 +1,8 @@
 import { API_BASE_URL } from './config.js';
+import {
+    buildMonthProgress,
+    monthProgressLabel
+} from './review-progress.mjs';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -20,6 +24,7 @@ const elements = {
     importInput: document.getElementById('importReviewInput'),
     exportButton: document.getElementById('exportReviewButton'),
     filterButtons: Array.from(document.querySelectorAll('[data-review-filter]')),
+    monthNav: document.getElementById('reviewMonthNav'),
     nextOpenButton: document.getElementById('nextOpenButton')
 };
 
@@ -116,6 +121,7 @@ function render(words) {
     updateSummary(words);
     updateReadiness(words);
     updateFilterControls(words);
+    renderMonthNav(words);
     applyReviewFilter();
     elements.firstPassButton.disabled = false;
     elements.importButton.disabled = false;
@@ -168,6 +174,7 @@ function renderWordRow(entry) {
         updateSummary(currentWords);
         updateReadiness(currentWords);
         updateFilterControls(currentWords);
+        renderMonthNav(currentWords);
         applyReviewFilter();
     });
 
@@ -183,6 +190,7 @@ function renderWordRow(entry) {
         updateSummary(currentWords);
         updateReadiness(currentWords);
         updateFilterControls(currentWords);
+        renderMonthNav(currentWords);
         applyReviewFilter();
     });
 
@@ -201,6 +209,7 @@ function renderWordRow(entry) {
         updateSummary(currentWords);
         updateReadiness(currentWords);
         updateFilterControls(currentWords);
+        renderMonthNav(currentWords);
         applyReviewFilter();
     });
 
@@ -275,6 +284,30 @@ function updateFilterControls(words) {
         button.textContent = labels[button.dataset.reviewFilter] || button.textContent;
         button.classList.toggle('review-filter-button--active', isActive);
         button.setAttribute('aria-pressed', String(isActive));
+    });
+}
+
+function renderMonthNav(words) {
+    elements.monthNav.replaceChildren();
+
+    buildMonthProgress(words, reviewState).forEach((progress) => {
+        const button = document.createElement('button');
+        const monthName = monthFormatter.format(new Date(2026, progress.month - 1, 1));
+
+        button.type = 'button';
+        button.className = 'review-month-link';
+        button.classList.toggle('review-month-link--complete', progress.open === 0);
+        button.textContent = monthProgressLabel(progress, monthName);
+        button.setAttribute(
+            'aria-label',
+            `${monthName}: ${progress.complete} av ${progress.total} ferdige, ${progress.open} uavklarte`
+        );
+        button.addEventListener('click', () => {
+            const section = document.getElementById(`month-${progress.month}`);
+            section?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        });
+
+        elements.monthNav.appendChild(button);
     });
 }
 

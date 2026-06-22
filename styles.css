@@ -221,6 +221,7 @@ button {
 .date-picker-button:focus-visible,
 .review-export-button:focus-visible,
 .review-filter-button:focus-visible,
+.review-month-link:focus-visible,
 .review-next-button:focus-visible {
     outline: 2px solid var(--text-color);
     outline-offset: 4px;
@@ -676,6 +677,35 @@ button {
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.35rem 0.8rem;
+}
+
+.review-month-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.75rem;
+}
+
+.review-month-link {
+    min-height: 2rem;
+    padding: 0 0.05rem;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: lowercase;
+}
+
+.review-month-link:hover,
+.review-month-link--complete {
+    color: var(--text-color);
+}
+
+.review-month-link--complete {
+    border-bottom-color: var(--text-color);
 }
 
 .review-export-button {

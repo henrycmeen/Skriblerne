@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Skriblerne - gjennomgang av 365 faste ord">
     <title>Ordlisten - Skriblerne</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-12">
+    <link rel="stylesheet" href="styles.css?v=20260622-13">
 </head>
 <body>
     <div class="review-shell">
@@ -38,6 +39,7 @@
                     <button class="review-filter-button" type="button" data-review-filter="suggested" aria-pressed="false">Forslag</button>
                     <button class="review-next-button" id="nextOpenButton" type="button" disabled>Neste uavklarte</button>
                 </div>
+                <div class="review-month-nav" id="reviewMonthNav" aria-label="Hopp til måned"></div>
                 <input id="importReviewInput" type="file" accept="application/json,.json" hidden>
                 <p class="review-status" id="reviewStatus" role="status"></p>
             </section>
@@ -45,6 +47,6 @@
             <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
         </main>
     </div>
-    <script type="module" src="js/word-review.js?v=20260622-12"></script>
+    <script type="module" src="js/word-review.js?v=20260622-13"></script>
 </body>
 </html>
