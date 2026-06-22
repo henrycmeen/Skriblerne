@@ -131,6 +131,15 @@ function updateSyncStatus() {
     elements.syncStatus.dataset.tone = hasUnsavedReviewChanges ? 'warning' : 'neutral';
 }
 
+function handleBeforeUnload(event) {
+    if (!hasUnsavedReviewChanges) {
+        return;
+    }
+
+    event.preventDefault();
+    event.returnValue = '';
+}
+
 function replaceReviewState(nextState) {
     Object.keys(reviewState).forEach((key) => {
         delete reviewState[key];
@@ -962,6 +971,7 @@ elements.nextOpenButton.addEventListener('click', goToNextOpenWord);
 elements.filterButtons.forEach((button) => {
     button.addEventListener('click', () => setActiveFilter(button.dataset.reviewFilter));
 });
+window.addEventListener('beforeunload', handleBeforeUnload);
 elements.sharedReviewCodeForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const code = elements.sharedReviewCodeInput.value.trim();
