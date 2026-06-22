@@ -24,7 +24,7 @@ function saveReviewState() {
 }
 
 async function fetchWords() {
-    const response = await fetch(`${API_BASE_URL}/api/words`);
+    const response = await fetch(`${API_BASE_URL}/api/words`, { cache: 'no-store' });
     if (!response.ok) {
         throw new Error('Kunne ikke hente ordlisten.');
     }

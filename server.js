@@ -48,6 +48,11 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname));
 app.use(express.json({ limit: '8mb' }));
 
+app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+});
+
 app.get('/healthz', (req, res) => {
     res.json({ status: 'ok' });
 });

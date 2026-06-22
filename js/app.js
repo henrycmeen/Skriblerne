@@ -74,7 +74,10 @@ function selectedDay() {
 }
 
 async function fetchJson(path, options = {}) {
-    const response = await fetch(`${API_BASE_URL}${path}`, options);
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        cache: 'no-store',
+        ...options
+    });
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
