@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const { WORD_CYCLE } = require('../data/wordCycle');
+const REQUIRED_REVIEWERS = [
+    ['henry', 'Henry'],
+    ['ellinor', 'Ellinor']
+];
 
 function usage() {
     console.log('Usage: node scripts/reviewStatus.js <review.json>');
@@ -29,6 +33,12 @@ function sanitizeWord(word) {
     return String(word || '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeReviewers(reviewers = {}) {
+    return Object.fromEntries(
+        REQUIRED_REVIEWERS.map(([key]) => [key, Boolean(reviewers?.[key])])
+    );
+}
+
 function getReview(entry) {
     return entry.review || entry || {};
 }
@@ -45,9 +55,11 @@ function getReviewStatus(words) {
         flagged: 0,
         flaggedWithoutSuggestion: 0,
         missingDates: 0,
+        missingReviewers: Object.fromEntries(REQUIRED_REVIEWERS.map(([key]) => [key, 0])),
         missingStatus: 0,
         replacements: 0,
         reviewed: 0,
+        reviewers: Object.fromEntries(REQUIRED_REVIEWERS.map(([key]) => [key, 0])),
         unknownDates: 0
     };
 
@@ -67,6 +79,7 @@ function getReviewStatus(words) {
         const review = getReview(entry);
         const status = String(review.status || '').trim();
         const suggestedWord = sanitizeWord(review.suggestedWord);
+        const reviewers = normalizeReviewers(review.reviewers);
         const originalWord = expected.word;
         const finalWord = suggestedWord || originalWord;
         const normalizedFinalWord = normalizeWord(finalWord);
@@ -83,6 +96,14 @@ function getReviewStatus(words) {
         } else {
             stats.missingStatus += 1;
         }
+
+        REQUIRED_REVIEWERS.forEach(([key]) => {
+            if (reviewers[key]) {
+                stats.reviewers[key] += 1;
+            } else {
+                stats.missingReviewers[key] += 1;
+            }
+        });
 
         if (suggestedWord && normalizeWord(suggestedWord) !== normalizeWord(originalWord)) {
             stats.replacements += 1;
@@ -116,6 +137,11 @@ function getReviewStatus(words) {
     if (stats.flaggedWithoutSuggestion > 0) {
         blockers.push(`${stats.flaggedWithoutSuggestion} Se på-ord uten nytt ord`);
     }
+    REQUIRED_REVIEWERS.forEach(([key, label]) => {
+        if (stats.missingReviewers[key] > 0) {
+            blockers.push(`${stats.missingReviewers[key]} mangler ${label}-gjennomgang`);
+        }
+    });
     if (stats.duplicateFinalWords > 0) {
         blockers.push(`${stats.duplicateFinalWords} duplikate sluttord`);
     }
@@ -137,6 +163,7 @@ function printStatus(status) {
         `OK: ${stats.approved}`,
         `Se på: ${stats.flagged}`,
         `Forslag: ${stats.replacements}`,
+        ...REQUIRED_REVIEWERS.map(([key, label]) => `${label}: ${stats.reviewers[key]}/${total}`),
         `Uavklarte: ${open}`,
         `Duplikater: ${stats.duplicateFinalWords}`,
         `Klar for apply: ${status.ready ? 'ja' : 'nei'}`,

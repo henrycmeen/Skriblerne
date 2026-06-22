@@ -4,6 +4,10 @@ const { DAYS_IN_MONTH, MONTH_WORDS, WORD_CYCLE } = require('../data/wordCycle');
 
 const WORD_CYCLE_PATH = path.join(__dirname, '..', 'data', 'wordCycle.js');
 const VALID_STATUSES = new Set(['approved', 'flagged']);
+const REQUIRED_REVIEWERS = [
+    ['henry', 'Henry'],
+    ['ellinor', 'Ellinor']
+];
 
 function usage() {
     console.log([
@@ -74,6 +78,12 @@ function sanitizeWord(word) {
     return String(word || '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizeReviewers(reviewers = {}) {
+    return Object.fromEntries(
+        REQUIRED_REVIEWERS.map(([key]) => [key, Boolean(reviewers?.[key])])
+    );
+}
+
 function validateAndBuild(words) {
     const errors = [];
     const reviewByMonthDay = new Map();
@@ -108,7 +118,8 @@ function validateAndBuild(words) {
         approved: 0,
         flagged: 0,
         replacements: 0,
-        reviewed: 0
+        reviewed: 0,
+        reviewerComplete: 0
     };
     const finalWordsByMonthDay = new Map();
     const finalWordsByNormalizedWord = new Map();
@@ -117,11 +128,21 @@ function validateAndBuild(words) {
         const review = reviewByMonthDay.get(entry.monthDay) || {};
         const status = String(review.status || '').trim();
         const suggestedWord = sanitizeWord(review.suggestedWord);
+        const reviewers = normalizeReviewers(review.reviewers);
 
         if (!VALID_STATUSES.has(status)) {
             errors.push(`${entry.monthDay} (${entry.word}) mangler OK/Se på-status.`);
         } else {
             stats.reviewed += 1;
+        }
+
+        const missingReviewers = REQUIRED_REVIEWERS.filter(([key]) => !reviewers[key]);
+        if (missingReviewers.length === 0) {
+            stats.reviewerComplete += 1;
+        } else {
+            missingReviewers.forEach(([, label]) => {
+                errors.push(`${entry.monthDay} (${entry.word}) mangler gjennomgang fra ${label}.`);
+            });
         }
 
         if (status === 'approved') {
@@ -236,6 +257,7 @@ function generateWordCycleFile(nextMonthWords) {
 function printSummary(stats, destination) {
     console.log([
         `Review validert: ${stats.reviewed}/365 ord markert.`,
+        `Gjennomgått av begge: ${stats.reviewerComplete}/365.`,
         `OK: ${stats.approved}. Se på: ${stats.flagged}. Nye ord: ${stats.replacements}.`,
         destination
             ? `Skrev oppdatert ordsyklus til ${destination}.`

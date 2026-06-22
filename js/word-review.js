@@ -1,7 +1,17 @@
 import { API_BASE_URL } from './config.js';
+import { OWNER_LABELS } from './history-utils.mjs';
+import {
+    IDENTITY_STORAGE_KEY,
+    normalizeIdentity,
+    readStoredIdentity
+} from './identity-utils.mjs';
 import {
     buildMonthProgress,
-    monthProgressLabel
+    hasRequiredReviewers,
+    isReviewCompleteForApply,
+    monthProgressLabel,
+    normalizeReviewers,
+    REQUIRED_REVIEWERS
 } from './review-progress.mjs';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
@@ -11,10 +21,13 @@ const REVIEW_FILTERS = new Set(['all', 'open', 'flagged', 'suggested']);
 const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 const reviewState = loadReviewState();
 let activeFilter = loadReviewFilter();
+let activeReviewer = readStoredIdentity(localStorage) || 'henry';
 let firstPassCandidates = null;
 let currentWords = [];
 
 const elements = {
+    identityLabel: document.getElementById('identityLabel'),
+    identityButtons: Array.from(document.querySelectorAll('[data-identity]')),
     months: document.getElementById('reviewMonths'),
     summary: document.getElementById('reviewSummary'),
     readiness: document.getElementById('reviewReadiness'),
@@ -96,6 +109,7 @@ function groupByMonth(words) {
 function render(words) {
     currentWords = words;
     elements.months.replaceChildren();
+    renderIdentity();
 
     groupByMonth(words).forEach((monthWords, month) => {
         const section = document.createElement('section');
@@ -132,6 +146,7 @@ function render(words) {
 
 function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
+    const reviewers = normalizeReviewers(review.reviewers);
     const row = document.createElement('article');
     row.className = 'review-word-row';
     row.dataset.monthDay = entry.monthDay;
@@ -162,6 +177,34 @@ function renderWordRow(entry) {
     `;
     const flaggedInput = flaggedLabel.querySelector('input');
 
+    const reviewerGroup = document.createElement('div');
+    reviewerGroup.className = 'review-reviewers';
+    reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${entry.word}`);
+
+    REQUIRED_REVIEWERS.forEach((reviewer) => {
+        const reviewerLabel = document.createElement('label');
+        reviewerLabel.className = 'review-check review-reviewer-check';
+        reviewerLabel.classList.toggle('review-reviewer-check--active', reviewer === activeReviewer);
+        reviewerLabel.innerHTML = `
+            <input type="checkbox" ${reviewers[reviewer] ? 'checked' : ''}>
+            <span>${OWNER_LABELS[reviewer]}</span>
+        `;
+
+        const reviewerInput = reviewerLabel.querySelector('input');
+        reviewerInput.addEventListener('change', (event) => {
+            const nextReviewers = normalizeReviewers(reviewState[entry.monthDay]?.reviewers);
+            nextReviewers[reviewer] = event.target.checked;
+            reviewState[entry.monthDay] = {
+                ...reviewState[entry.monthDay],
+                reviewers: nextReviewers
+            };
+            saveReviewState();
+            updateReviewProgress();
+        });
+
+        reviewerGroup.appendChild(reviewerLabel);
+    });
+
     approvedInput.addEventListener('change', (event) => {
         if (event.target.checked) {
             flaggedInput.checked = false;
@@ -171,11 +214,7 @@ function renderWordRow(entry) {
             status: event.target.checked ? 'approved' : ''
         };
         saveReviewState();
-        updateSummary(currentWords);
-        updateReadiness(currentWords);
-        updateFilterControls(currentWords);
-        renderMonthNav(currentWords);
-        applyReviewFilter();
+        updateReviewProgress();
     });
 
     flaggedInput.addEventListener('change', (event) => {
@@ -187,11 +226,7 @@ function renderWordRow(entry) {
             status: event.target.checked ? 'flagged' : ''
         };
         saveReviewState();
-        updateSummary(currentWords);
-        updateReadiness(currentWords);
-        updateFilterControls(currentWords);
-        renderMonthNav(currentWords);
-        applyReviewFilter();
+        updateReviewProgress();
     });
 
     const suggestedWord = document.createElement('input');
@@ -206,11 +241,7 @@ function renderWordRow(entry) {
             suggestedWord: event.target.value
         };
         saveReviewState();
-        updateSummary(currentWords);
-        updateReadiness(currentWords);
-        updateFilterControls(currentWords);
-        renderMonthNav(currentWords);
-        applyReviewFilter();
+        updateReviewProgress();
     });
 
     const note = document.createElement('input');
@@ -227,9 +258,37 @@ function renderWordRow(entry) {
         saveReviewState();
     });
 
-    controls.append(approvedLabel, flaggedLabel, suggestedWord, note);
+    controls.append(approvedLabel, flaggedLabel, suggestedWord, note, reviewerGroup);
     row.append(heading, controls);
     return row;
+}
+
+function renderIdentity() {
+    elements.identityLabel.textContent = 'Jeg er';
+    elements.identityButtons.forEach((button) => {
+        const active = button.dataset.identity === activeReviewer;
+        button.classList.toggle('identity-button--active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+}
+
+function switchReviewer(reviewer) {
+    const nextReviewer = normalizeIdentity(reviewer);
+    if (!nextReviewer || nextReviewer === activeReviewer) {
+        return;
+    }
+
+    activeReviewer = nextReviewer;
+    localStorage.setItem(IDENTITY_STORAGE_KEY, activeReviewer);
+    render(currentWords);
+}
+
+function updateReviewProgress() {
+    updateSummary(currentWords);
+    updateReadiness(currentWords);
+    updateFilterControls(currentWords);
+    renderMonthNav(currentWords);
+    applyReviewFilter();
 }
 
 function updateSummary(words) {
@@ -237,6 +296,7 @@ function updateSummary(words) {
     const filteredCount = countFilteredWords(words);
     elements.summary.textContent = [
         `${stats.reviewed} av ${words.length} ord er markert.`,
+        `Henry ${stats.reviewers.henry}/${words.length}. Ellinor ${stats.reviewers.ellinor}/${words.length}.`,
         `${stats.flagged} ord er merket for ny vurdering.`,
         `${stats.suggested} ${stats.suggested === 1 ? 'nytt ord er' : 'nye ord er'} foreslått.`,
         stats.duplicateCount > 0
@@ -258,6 +318,10 @@ function updateReadiness(words) {
 
     if (stats.duplicateCount > 0) {
         blockers.push(`${stats.duplicateCount} ${stats.duplicateCount === 1 ? 'duplikat' : 'duplikater'}`);
+    }
+
+    if (stats.missingReviewers > 0) {
+        blockers.push(`${stats.missingReviewers} ${stats.missingReviewers === 1 ? 'ord mangler' : 'ord mangler'} Henry/Ellinor-gjennomgang`);
     }
 
     if (blockers.length === 0 && stats.reviewed === words.length) {
@@ -300,7 +364,7 @@ function renderMonthNav(words) {
         button.textContent = monthProgressLabel(progress, monthName);
         button.setAttribute(
             'aria-label',
-            `${monthName}: ${progress.complete} av ${progress.total} ferdige, ${progress.open} uavklarte`
+            `${monthName}: ${progress.complete} av ${progress.total} ferdige, ${progress.open} uavklarte, ${progress.missingReviewers} mangler gjennomgang fra Henry eller Ellinor`
         );
         button.addEventListener('click', () => {
             const section = document.getElementById(`month-${progress.month}`);
@@ -341,7 +405,8 @@ async function applyFirstPassCandidates() {
             nextState[monthDay] = {
                 status: 'flagged',
                 suggestedWord: candidate.suggestedWord || '',
-                note: candidate.note || ''
+                note: candidate.note || '',
+                reviewers: normalizeReviewers(existingReview.reviewers)
             };
             applied += 1;
         });
@@ -368,9 +433,12 @@ function getReviewStats(words) {
     let open = 0;
     let suggested = 0;
     let duplicateCount = 0;
+    let missingReviewers = 0;
+    const reviewers = Object.fromEntries(REQUIRED_REVIEWERS.map((reviewer) => [reviewer, 0]));
 
     words.forEach((word) => {
         const review = reviewState[word.monthDay] || {};
+        const reviewReviewers = normalizeReviewers(review.reviewers);
         const suggestedWord = normalizeWord(review.suggestedWord);
         const originalWord = normalizeWord(word.word);
         const finalWord = suggestedWord || originalWord;
@@ -378,8 +446,16 @@ function getReviewStats(words) {
         if (review.status) {
             reviewed += 1;
         }
-        if (!review.status || (review.status === 'flagged' && !suggestedWord)) {
+        if (!isReviewCompleteForApply(review)) {
             open += 1;
+        }
+        REQUIRED_REVIEWERS.forEach((reviewer) => {
+            if (reviewReviewers[reviewer]) {
+                reviewers[reviewer] += 1;
+            }
+        });
+        if (!hasRequiredReviewers(review)) {
+            missingReviewers += 1;
         }
         if (review.status === 'flagged') {
             flagged += 1;
@@ -396,8 +472,10 @@ function getReviewStats(words) {
     return {
         duplicateCount,
         flagged,
+        missingReviewers,
         open,
         reviewed,
+        reviewers,
         suggested
     };
 }
@@ -416,7 +494,7 @@ function matchesReviewFilter(word, filter = activeFilter) {
     const originalWord = normalizeWord(word.word);
 
     if (filter === 'open') {
-        return !review.status || (review.status === 'flagged' && !suggestedWord);
+        return !isReviewCompleteForApply(review);
     }
 
     if (filter === 'flagged') {
@@ -464,7 +542,7 @@ function goToNextOpenWord() {
     const nextOpenWord = currentWords.find((word) => matchesReviewFilter(word, 'open'));
 
     if (!nextOpenWord) {
-        setReviewStatus('Alle ord er markert og flaggede ord har forslag.', 'success');
+        setReviewStatus('Alle ord er markert, signert av begge og flaggede ord har forslag.', 'success');
         return;
     }
 
@@ -481,15 +559,20 @@ function goToNextOpenWord() {
 function exportReview(words) {
     const reviewedAt = new Date().toISOString();
     const stats = getReviewStats(words);
-    const payload = words.map((word) => ({
-        ...word,
-        review: {
-            status: '',
-            suggestedWord: '',
-            note: '',
-            ...(reviewState[word.monthDay] || {})
-        }
-    }));
+    const payload = words.map((word) => {
+        const review = reviewState[word.monthDay] || {};
+
+        return {
+            ...word,
+            review: {
+                status: '',
+                suggestedWord: '',
+                note: '',
+                ...review,
+                reviewers: normalizeReviewers(review.reviewers)
+            }
+        };
+    });
     const blob = new Blob([JSON.stringify({ reviewedAt, stats, words: payload }, null, 2)], {
         type: 'application/json'
     });
@@ -552,7 +635,7 @@ function importReviewPayload(payload, words) {
         const review = sanitizeReview(word.review || word);
         matched += 1;
 
-        if (review.status || review.suggestedWord || review.note) {
+        if (review.status || review.suggestedWord || review.note || hasAnyReviewer(review)) {
             nextState[word.monthDay] = review;
             reviewed += 1;
         }
@@ -569,10 +652,18 @@ function sanitizeReview(review) {
     const status = ['approved', 'flagged'].includes(review?.status) ? review.status : '';
     const suggestedWord = String(review?.suggestedWord || '').trim();
     const note = String(review?.note || '').trim();
+    const reviewers = normalizeReviewers(review?.reviewers);
 
-    return { status, suggestedWord, note };
+    return { status, suggestedWord, note, reviewers };
 }
 
+function hasAnyReviewer(review) {
+    return REQUIRED_REVIEWERS.some((reviewer) => review.reviewers?.[reviewer]);
+}
+
+elements.identityButtons.forEach((button) => {
+    button.addEventListener('click', () => switchReviewer(button.dataset.identity));
+});
 elements.firstPassButton.addEventListener('click', applyFirstPassCandidates);
 elements.importButton.addEventListener('click', () => elements.importInput.click());
 elements.importInput.addEventListener('change', handleImportSelected);

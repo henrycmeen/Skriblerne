@@ -7,7 +7,7 @@
     <title>Ordlisten - Skriblerne</title>
     <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-13">
+    <link rel="stylesheet" href="styles.css?v=20260622-16">
 </head>
 <body>
     <div class="review-shell">
@@ -17,6 +17,11 @@
                 <p class="subtitle">Ordgjennomgang</p>
             </div>
             <div class="topbar-actions" aria-label="Sidevalg">
+                <div class="identity-switch" aria-label="Velg hvem du er">
+                    <span class="identity-prefix" id="identityLabel">Jeg er</span>
+                    <button class="identity-button" type="button" data-identity="henry" aria-pressed="true">Henry</button>
+                    <button class="identity-button" type="button" data-identity="ellinor" aria-pressed="false">Ellinor</button>
+                </div>
                 <a class="text-link" href="index.html">Dagens ord</a>
             </div>
         </header>
@@ -47,6 +52,6 @@
             <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
         </main>
     </div>
-    <script type="module" src="js/word-review.js?v=20260622-13"></script>
+    <script type="module" src="js/word-review.js?v=20260622-16"></script>
 </body>
 </html>

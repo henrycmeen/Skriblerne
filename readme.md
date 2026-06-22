@@ -20,9 +20,9 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay` + `owner` (`henry` eller `ellinor`).
 - `index.html`, `js/app.js` og `js/history-utils.mjs` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
 - Historikklisten for samme dato henter bare metadata og thumbnails; full `imageData` hentes først for valgt bilde via detaljendepunktet.
-- `ordliste.html`, `js/word-review.js` og `js/review-progress.mjs` brukes til manuell gjennomgang av alle 365 ordene.
+- `ordliste.html`, `js/word-review.js` og `js/review-progress.mjs` brukes til manuell gjennomgang av alle 365 ordene, med egen avhuking for Henry og Ellinor.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
-- Ordgjennomgangen viser når eksporten er klar for `scripts/applyWordReview.js`.
+- Ordgjennomgangen viser når eksporten er klar for `scripts/applyWordReview.js`, inkludert at begge har vurdert alle ordene.
 
 ## Funksjoner
 
@@ -46,7 +46,7 @@ npm run review:status -- <review.json>
 npm run review:apply -- <review.json>
 ```
 
-`npm run check` kjører syntakssjekk av backend/frontend-script, validerer at ordsyklusen har 365 unike datoer og 365 unike ord, og tester at review-eksporter stoppes ved manglende status, manglende nytt ord og duplikate sluttord.
+`npm run check` kjører syntakssjekk av backend/frontend-script, validerer at ordsyklusen har 365 unike datoer og 365 unike ord, og tester at review-eksporter stoppes ved manglende status, manglende Henry/Ellinor-gjennomgang, manglende nytt ord og duplikate sluttord.
 
 ## Miljøvariabler
 
@@ -61,11 +61,12 @@ SKRIBLERNE_EDIT_CODE=...
 ## Ordgjennomgang
 
 1. Åpne `ordliste.html`.
-2. Marker hvert ord som `OK` eller `Se på`.
-3. Bruk filteret `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
-4. Fyll ut `Nytt ord` for ord som skal byttes.
-5. Bruk `Eksporter gjennomgang` for å laste ned JSON.
-6. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
+2. Velg hvem du er øverst, og huk av når du har vurdert et ord.
+3. Marker hvert ord som `OK` eller `Se på`.
+4. Bruk filteret `Uavklarte` eller `Neste uavklarte` for å jobbe videre uten å lete manuelt.
+5. Fyll ut `Nytt ord` for ord som skal byttes.
+6. Bruk `Eksporter gjennomgang` for å laste ned JSON.
+7. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
 
 For å starte med en maskinlaget første-pass liste over ord som bør vurderes, trykk `Start første-pass` i `ordliste.html`.
 
@@ -87,7 +88,7 @@ npm run review:status -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 ```
 
-`review:status` viser fremdrift og om filen er klar for apply. `review:apply` krever at alle 365 datoer finnes i filen, at alle ord er markert, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
+`review:status` viser fremdrift og om filen er klar for apply. `review:apply` krever at alle 365 datoer finnes i filen, at alle ord er markert, at både Henry og Ellinor har vurdert alle ord, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
 
 For å lage en preview-fil:
 
@@ -119,6 +120,6 @@ Frontend deploy når statiske filer er endret:
 
 ```bash
 rsync -a index.html ordliste.html styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
-rsync -a js/app.js js/history-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
+rsync -a js/app.js js/history-utils.mjs js/identity-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
 rsync -a data/wordReviewCandidates.json /Users/henrymeen/srv/www/henrymeen/skriblerne/data/
 ```

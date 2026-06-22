@@ -18,6 +18,10 @@ function buildReview(overrides = {}) {
                 status: 'approved',
                 suggestedWord: '',
                 note: '',
+                reviewers: {
+                    henry: true,
+                    ellinor: true
+                },
                 ...(overrides[word.monthDay] || {})
             }
         }))
@@ -79,6 +83,8 @@ function main() {
         const validReviewStatus = runStatus(writeReview(tempDir, 'valid-status', validReview));
         assertPass(validReviewStatus, 'valid review status');
         assert.match(validReviewStatus.stdout, /Markert: 365\/365/);
+        assert.match(validReviewStatus.stdout, /Henry: 365\/365/);
+        assert.match(validReviewStatus.stdout, /Ellinor: 365\/365/);
         assert.match(validReviewStatus.stdout, /Klar for apply: ja/);
 
         const partialReview = buildReview({
@@ -100,6 +106,10 @@ function main() {
             firstPass.words.filter((word) => word.review.status === 'flagged').length,
             20
         );
+        assert.deepEqual(
+            firstPass.words[0].review.reviewers,
+            { henry: false, ellinor: false }
+        );
         assert.equal(
             firstPass.words.find((word) => word.monthDay === '12-30').review.suggestedWord,
             'Nyttårsglass'
@@ -107,6 +117,8 @@ function main() {
         const firstPassStatus = runStatus(firstPassPath);
         assertPass(firstPassStatus, 'first-pass review status');
         assert.match(firstPassStatus.stdout, /Markert: 20\/365/);
+        assert.match(firstPassStatus.stdout, /Henry: 0\/365/);
+        assert.match(firstPassStatus.stdout, /Ellinor: 0\/365/);
         assert.match(firstPassStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
@@ -125,6 +137,15 @@ function main() {
             runApply(writeReview(tempDir, 'missing-suggestion', missingSuggestionReview)),
             /01-01 \(Snøfnugg\) er flagget, men mangler nytt ord/,
             'flagged review without suggestion'
+        );
+
+        const missingReviewerReview = buildReview({
+            '01-01': { reviewers: { henry: true, ellinor: false } }
+        });
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'missing-reviewer', missingReviewerReview)),
+            /01-01 \(Snøfnugg\) mangler gjennomgang fra Ellinor/,
+            'review without both reviewers'
         );
 
         const duplicateReview = buildReview({

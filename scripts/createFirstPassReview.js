@@ -55,7 +55,11 @@ function buildFirstPassReview() {
             review: {
                 status: candidate ? 'flagged' : '',
                 suggestedWord: candidate?.suggestedWord || '',
-                note: candidate?.note || ''
+                note: candidate?.note || '',
+                reviewers: {
+                    henry: false,
+                    ellinor: false
+                }
             }
         };
     });
