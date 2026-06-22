@@ -52,6 +52,7 @@ const dateFormatter = new Intl.DateTimeFormat('nb-NO', {
     day: '2-digit',
     month: '2-digit'
 });
+const monthFormatter = new Intl.DateTimeFormat('nb-NO', { month: 'long' });
 
 function toMonthDay(date) {
     return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -291,37 +292,71 @@ function renderOverview() {
 
     elements.yearGrid.replaceChildren();
     let filledDays = 0;
-    state.calendar.days.forEach((day) => {
-        if (day.memory) {
-            filledDays += 1;
-        }
+    const daysByMonth = groupDaysByMonth(state.calendar.days);
 
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'day-dot';
-        button.classList.toggle('day-dot--filled', Boolean(day.memory));
-        button.classList.toggle('day-dot--today', isToday(state.selectedYear, day.monthDay));
-        button.classList.toggle('day-dot--selected', day.monthDay === state.selectedMonthDay);
-        button.setAttribute('role', 'listitem');
-        button.setAttribute(
-            'aria-label',
-            `${day.day}.${day.month}. ${day.word}${day.memory ? ', har bilde' : ', mangler bilde'}`
-        );
+    daysByMonth.forEach((monthDays, month) => {
+        const section = document.createElement('section');
+        const heading = document.createElement('h3');
+        const dotGrid = document.createElement('div');
+        const monthName = monthFormatter.format(new Date(state.selectedYear, month - 1, 1));
 
-        if (day.memory?.thumbnailData) {
-            button.style.setProperty('--dot-image', `url("${day.memory.thumbnailData}")`);
-        }
+        section.className = 'month-overview';
+        section.setAttribute('aria-labelledby', `overview-month-${month}`);
+        heading.id = `overview-month-${month}`;
+        heading.className = 'month-overview-title';
+        heading.textContent = monthName;
 
-        button.addEventListener('click', async () => {
-            state.selectedMonthDay = day.monthDay;
-            state.view = 'today';
-            await refreshAll();
+        dotGrid.className = 'month-dot-grid';
+        dotGrid.setAttribute('role', 'list');
+        dotGrid.setAttribute('aria-label', `${monthName} ${state.selectedYear}`);
+
+        monthDays.forEach((day) => {
+            if (day.memory) {
+                filledDays += 1;
+            }
+            dotGrid.appendChild(createDayDot(day));
         });
 
-        elements.yearGrid.appendChild(button);
+        section.append(heading, dotGrid);
+        elements.yearGrid.appendChild(section);
     });
 
     elements.overviewSummary.textContent = `${filledDays} bilder i ${state.selectedYear}`;
+}
+
+function groupDaysByMonth(days) {
+    return days.reduce((months, day) => {
+        const monthDays = months.get(day.month) || [];
+        monthDays.push(day);
+        months.set(day.month, monthDays);
+        return months;
+    }, new Map());
+}
+
+function createDayDot(day) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'day-dot';
+    button.classList.toggle('day-dot--filled', Boolean(day.memory));
+    button.classList.toggle('day-dot--today', isToday(state.selectedYear, day.monthDay));
+    button.classList.toggle('day-dot--selected', day.monthDay === state.selectedMonthDay);
+    button.setAttribute('role', 'listitem');
+    button.setAttribute(
+        'aria-label',
+        `${day.day}.${day.month}. ${day.word}${day.memory ? ', har bilde' : ', mangler bilde'}`
+    );
+
+    if (day.memory?.thumbnailData) {
+        button.style.setProperty('--dot-image', `url("${day.memory.thumbnailData}")`);
+    }
+
+    button.addEventListener('click', async () => {
+        state.selectedMonthDay = day.monthDay;
+        state.view = 'today';
+        await refreshAll();
+    });
+
+    return button;
 }
 
 async function changeYear(offset) {
