@@ -6,6 +6,7 @@ const path = require('path');
 const { WORD_CYCLE } = require('../data/wordCycle');
 
 const APPLY_SCRIPT = path.join(__dirname, 'applyWordReview.js');
+const FIRST_PASS_SCRIPT = path.join(__dirname, 'createFirstPassReview.js');
 const STATUS_SCRIPT = path.join(__dirname, 'reviewStatus.js');
 
 function buildReview(overrides = {}) {
@@ -38,6 +39,13 @@ function runApply(reviewPath) {
 
 function runStatus(reviewPath) {
     return spawnSync(process.execPath, [STATUS_SCRIPT, reviewPath], {
+        cwd: path.join(__dirname, '..'),
+        encoding: 'utf8'
+    });
+}
+
+function runFirstPass(outputPath) {
+    return spawnSync(process.execPath, [FIRST_PASS_SCRIPT, '--output', outputPath], {
         cwd: path.join(__dirname, '..'),
         encoding: 'utf8'
     });
@@ -82,6 +90,24 @@ function main() {
         assert.match(partialReviewStatus.stdout, /Markert: 364\/365/);
         assert.match(partialReviewStatus.stdout, /Uavklarte: 2/);
         assert.match(partialReviewStatus.stdout, /Klar for apply: nei/);
+
+        const firstPassPath = path.join(tempDir, 'first-pass.json');
+        assertPass(runFirstPass(firstPassPath), 'first-pass review export');
+        const firstPass = JSON.parse(fs.readFileSync(firstPassPath, 'utf8'));
+        assert.equal(firstPass.words.length, 365);
+        assert.equal(firstPass.stats.candidates, 20);
+        assert.equal(
+            firstPass.words.filter((word) => word.review.status === 'flagged').length,
+            20
+        );
+        assert.equal(
+            firstPass.words.find((word) => word.monthDay === '12-30').review.suggestedWord,
+            'Nyttårsglass'
+        );
+        const firstPassStatus = runStatus(firstPassPath);
+        assertPass(firstPassStatus, 'first-pass review status');
+        assert.match(firstPassStatus.stdout, /Markert: 20\/365/);
+        assert.match(firstPassStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
             '01-01': { status: '' }

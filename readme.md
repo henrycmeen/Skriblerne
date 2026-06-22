@@ -40,6 +40,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 npm install
 npm start
 npm run check
+npm run review:first-pass -- --output /tmp/skriblerne-forste-pass.json
 npm run review:status -- <review.json>
 npm run review:apply -- <review.json>
 ```
@@ -64,6 +65,14 @@ SKRIBLERNE_EDIT_CODE=...
 4. Fyll ut `Nytt ord` for ord som skal byttes.
 5. Bruk `Eksporter gjennomgang` for å laste ned JSON.
 6. Bruk `Importer gjennomgang` hvis gjennomgangen skal fortsettes i en annen browser eller på en annen maskin.
+
+For å starte med en maskinlaget første-pass liste over ord som bør vurderes:
+
+```bash
+npm run review:first-pass -- --output /tmp/skriblerne-forste-pass.json
+```
+
+Importer JSON-filen i `ordliste.html`, og bruk filteret `Se på` for å gå gjennom kandidatene. Dette er ikke en fasit, bare en startliste for Henry/Ellinor-gjennomgangen. Se også `docs/ordgjennomgang-forste-pass.md`.
 
 Når hele listen er gjennomgått, kan review-filen valideres uten å endre repoet:
 
