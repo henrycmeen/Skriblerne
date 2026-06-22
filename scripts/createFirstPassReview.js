@@ -96,8 +96,14 @@ function main() {
 }
 
 try {
-    main();
+    if (require.main === module) {
+        main();
+    }
 } catch (error) {
     console.error(error.message);
     process.exit(1);
 }
+
+module.exports = {
+    buildFirstPassReview
+};

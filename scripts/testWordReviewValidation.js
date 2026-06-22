@@ -42,7 +42,9 @@ function runApply(reviewPath) {
 }
 
 function runStatus(reviewPath) {
-    return spawnSync(process.execPath, [STATUS_SCRIPT, reviewPath], {
+    const args = reviewPath ? [STATUS_SCRIPT, reviewPath] : [STATUS_SCRIPT];
+
+    return spawnSync(process.execPath, args, {
         cwd: path.join(__dirname, '..'),
         encoding: 'utf8'
     });
@@ -120,6 +122,12 @@ function main() {
         assert.match(firstPassStatus.stdout, /Henry: 0\/365/);
         assert.match(firstPassStatus.stdout, /Ellinor: 0\/365/);
         assert.match(firstPassStatus.stdout, /Klar for apply: nei/);
+
+        const defaultStatus = runStatus();
+        assertPass(defaultStatus, 'default first-pass review status');
+        assert.match(defaultStatus.stdout, /Kilde: første-pass kandidatliste/);
+        assert.match(defaultStatus.stdout, /Markert: 20\/365/);
+        assert.match(defaultStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
             '01-01': { status: '' }

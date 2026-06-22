@@ -1,13 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 const { WORD_CYCLE } = require('../data/wordCycle');
+const { buildFirstPassReview } = require('./createFirstPassReview');
 const REQUIRED_REVIEWERS = [
     ['henry', 'Henry'],
     ['ellinor', 'Ellinor']
 ];
 
 function usage() {
-    console.log('Usage: node scripts/reviewStatus.js <review.json>');
+    console.log([
+        'Usage: node scripts/reviewStatus.js [review.json]',
+        '',
+        'Without a file path, status is shown for the generated first-pass candidate review.'
+    ].join('\n'));
 }
 
 function readReviewExport(reviewPath) {
@@ -154,11 +159,12 @@ function getReviewStatus(words) {
     };
 }
 
-function printStatus(status) {
+function printStatus(status, sourceLabel = '') {
     const { stats, total } = status;
     const open = total - stats.reviewed + stats.flaggedWithoutSuggestion;
 
     console.log([
+        sourceLabel ? `Kilde: ${sourceLabel}` : '',
         `Markert: ${stats.reviewed}/${total}`,
         `OK: ${stats.approved}`,
         `Se på: ${stats.flagged}`,
@@ -173,9 +179,14 @@ function printStatus(status) {
 
 function main() {
     const reviewPath = process.argv[2];
-    if (!reviewPath || reviewPath === '--help' || reviewPath === '-h') {
+    if (reviewPath === '--help' || reviewPath === '-h') {
         usage();
-        process.exitCode = reviewPath ? 0 : 1;
+        return;
+    }
+
+    if (!reviewPath) {
+        const firstPassReview = buildFirstPassReview();
+        printStatus(getReviewStatus(firstPassReview.words), 'første-pass kandidatliste');
         return;
     }
 

@@ -42,6 +42,7 @@ npm install
 npm start
 npm run check
 npm run review:first-pass -- --output /tmp/skriblerne-forste-pass.json
+npm run review:status
 npm run review:status -- <review.json>
 npm run review:apply -- <review.json>
 ```
@@ -78,7 +79,13 @@ npm run review:first-pass -- --output /tmp/skriblerne-forste-pass.json
 
 Importer JSON-filen i `ordliste.html`, og bruk filteret `Se på` for å gå gjennom kandidatene. Dette er ikke en fasit, bare en startliste for Henry/Ellinor-gjennomgangen. Se også `docs/ordgjennomgang-forste-pass.md`.
 
-Når hele listen er gjennomgått, kan review-filen valideres uten å endre repoet:
+For å se status på første-pass-listen fra terminal uten å endre repoet:
+
+```bash
+npm run review:status
+```
+
+Når hele listen er gjennomgått, kan en eksportert review-fil valideres uten å endre repoet:
 
 ```bash
 npm run review:status -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
@@ -88,7 +95,7 @@ npm run review:status -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 ```
 
-`review:status` viser fremdrift og om filen er klar for apply. `review:apply` krever at alle 365 datoer finnes i filen, at alle ord er markert, at både Henry og Ellinor har vurdert alle ord, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
+`review:status` uten argument bygger status fra første-pass kandidatlisten. Med en JSON-sti viser den fremdrift og om den eksporterte filen er klar for apply. `review:apply` krever eksplisitt JSON-sti, og krever at alle 365 datoer finnes i filen, at alle ord er markert, at både Henry og Ellinor har vurdert alle ord, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
 
 For å lage en preview-fil:
 
