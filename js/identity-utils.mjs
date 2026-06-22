@@ -30,6 +30,11 @@ export function findOwnMemory(memories, { year, monthDay, owner }) {
     )) || null;
 }
 
+export function formatPhotoActionLabel({ owner, hasOwnMemory }) {
+    const action = hasOwnMemory ? 'Bytt bilde' : 'Legg til bilde';
+    return `${action} som ${OWNER_LABELS[normalizeOwner(owner)]}`;
+}
+
 export function formatSaveContext({ owner, year, monthDay, word }) {
     const [month, day] = monthDay.split('-');
     return `${OWNER_LABELS[normalizeOwner(owner)]} · ${day}.${month}.${year} · ${word || 'Ukjent ord'}`;

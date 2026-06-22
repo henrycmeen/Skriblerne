@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+    formatPhotoActionLabel,
     formatSaveContext,
     findOwnMemory,
     IDENTITY_STORAGE_KEY,
@@ -21,6 +22,15 @@ storage.set(IDENTITY_STORAGE_KEY, 'ukjent');
 assert.equal(readStoredIdentity(localStorageLike), null);
 assert.equal(normalizeIdentity(' Henry '), 'henry');
 assert.equal(normalizeIdentity('noen andre'), null);
+
+assert.equal(
+    formatPhotoActionLabel({ owner: 'henry', hasOwnMemory: false }),
+    'Legg til bilde som Henry'
+);
+assert.equal(
+    formatPhotoActionLabel({ owner: 'ellinor', hasOwnMemory: true }),
+    'Bytt bilde som Ellinor'
+);
 
 assert.equal(
     formatSaveContext({

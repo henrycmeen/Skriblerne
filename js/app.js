@@ -10,6 +10,7 @@ import {
 } from './history-utils.mjs?v=20260622-22';
 import {
     findOwnMemory,
+    formatPhotoActionLabel,
     formatSaveContext,
     IDENTITY_STORAGE_KEY,
     normalizeIdentity,
@@ -63,6 +64,7 @@ const elements = {
     cameraInput: document.getElementById('cameraInput'),
     libraryInput: document.getElementById('libraryInput'),
     photoSourceDialog: document.getElementById('photoSourceDialog'),
+    photoSourceHeading: document.getElementById('photoSourceHeading'),
     photoSourceContext: document.getElementById('photoSourceContext'),
     cameraButton: document.getElementById('cameraButton'),
     libraryButton: document.getElementById('libraryButton'),
@@ -111,10 +113,6 @@ function normalizeCycleMonthDay(monthDay) {
 
 function ownerLabel(owner = state.owner) {
     return OWNER_LABELS[normalizeOwner(owner)];
-}
-
-function signedInOwnerLabel() {
-    return OWNER_LABELS[state.signedInOwner];
 }
 
 function memoriesForDay(day) {
@@ -231,6 +229,7 @@ function resolveEditCode(code) {
 }
 
 function openPhotoSourceDialog() {
+    elements.photoSourceHeading.textContent = photoActionLabel();
     elements.photoSourceContext.textContent = saveContextText();
     elements.photoSourceDialog.hidden = false;
     elements.cameraButton.focus();
@@ -251,6 +250,13 @@ function saveContextText() {
         year: state.selectedYear,
         monthDay: state.selectedMonthDay,
         word: selectedDay()?.word
+    });
+}
+
+function photoActionLabel() {
+    return formatPhotoActionLabel({
+        owner: state.signedInOwner,
+        hasOwnMemory: Boolean(signedInMemoryForSelectedDate())
     });
 }
 
@@ -354,10 +360,7 @@ function renderDate() {
 }
 
 function renderPhoto() {
-    const ownMemory = signedInMemoryForSelectedDate();
-    const uploadLabel = ownMemory
-        ? `Bytt bilde som ${signedInOwnerLabel()}`
-        : `Legg til bilde som ${signedInOwnerLabel()}`;
+    const uploadLabel = photoActionLabel();
 
     elements.emptyMemoryText.textContent = uploadLabel;
     elements.addPhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);

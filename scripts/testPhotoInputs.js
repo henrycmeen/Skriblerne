@@ -29,7 +29,7 @@ assert.match(html, /id="loginDialog"/);
 assert.match(html, /data-login-owner="henry"/);
 assert.match(html, /data-login-owner="ellinor"/);
 assert.match(html, /styles\.css\?v=20260622-21/);
-assert.match(html, /js\/app\.js\?v=20260622-22/);
+assert.match(html, /js\/app\.js\?v=20260622-23/);
 assert.match(script, /overview-utils\.mjs\?v=20260622-21/);
 assert.match(script, /history-utils\.mjs\?v=20260622-22/);
 assert.match(script, /buildOverviewLegend/);
