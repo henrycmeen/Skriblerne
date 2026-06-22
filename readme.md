@@ -26,7 +26,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 
 ## Funksjoner
 
-- Dagens ord med bildeopplasting.
+- Dagens ord med bildeopplasting fra kamera eller bildebibliotek.
 - Årsoversikt med 365 prikker, en for hver dato.
 - Navigasjon mellom år.
 - Diskret datovelger for å gå direkte til en dato og laste opp bilde der.

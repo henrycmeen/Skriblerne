@@ -38,7 +38,12 @@ const elements = {
     photoFrame: document.getElementById('photoFrame'),
     addPhotoButton: document.getElementById('addPhotoButton'),
     replacePhotoButton: document.getElementById('replacePhotoButton'),
-    photoInput: document.getElementById('photoInput'),
+    cameraInput: document.getElementById('cameraInput'),
+    libraryInput: document.getElementById('libraryInput'),
+    photoSourceDialog: document.getElementById('photoSourceDialog'),
+    cameraButton: document.getElementById('cameraButton'),
+    libraryButton: document.getElementById('libraryButton'),
+    cancelPhotoSourceButton: document.getElementById('cancelPhotoSourceButton'),
     statusText: document.getElementById('statusText'),
     yearStrip: document.getElementById('yearStrip'),
     comparison: document.querySelector('.comparison'),
@@ -182,6 +187,20 @@ function resolveEditCode(code) {
     elements.editCodeDialog.hidden = true;
     editCodeResolver?.(code);
     editCodeResolver = null;
+}
+
+function openPhotoSourceDialog() {
+    elements.photoSourceDialog.hidden = false;
+    elements.cameraButton.focus();
+}
+
+function closePhotoSourceDialog() {
+    elements.photoSourceDialog.hidden = true;
+}
+
+function openPhotoInput(input) {
+    closePhotoSourceDialog();
+    input.click();
 }
 
 async function loadCalendar(year = state.selectedYear) {
@@ -647,6 +666,11 @@ function renderCanvas(bitmap, maxSize, quality) {
 }
 
 function bindEvents() {
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !elements.photoSourceDialog.hidden) {
+            closePhotoSourceDialog();
+        }
+    });
     elements.todayButton.addEventListener('click', goToToday);
     elements.ownerButtons.forEach((button) => {
         button.addEventListener('click', () => switchOwner(button.dataset.owner));
@@ -657,14 +681,23 @@ function bindEvents() {
     elements.overviewNextYearButton.addEventListener('click', () => changeYear(1));
     elements.datePickerButton.addEventListener('click', openDatePicker);
     elements.datePickerInput.addEventListener('change', (event) => goToPickedDate(event.target.value));
-    elements.addPhotoButton.addEventListener('click', () => elements.photoInput.click());
-    elements.replacePhotoButton.addEventListener('click', () => elements.photoInput.click());
+    elements.addPhotoButton.addEventListener('click', openPhotoSourceDialog);
+    elements.replacePhotoButton.addEventListener('click', openPhotoSourceDialog);
     elements.photoFrame.addEventListener('click', (event) => {
         if (event.target === elements.photoFrame && state.currentMemory) {
-            elements.photoInput.click();
+            openPhotoSourceDialog();
         }
     });
-    elements.photoInput.addEventListener('change', handlePhotoSelected);
+    elements.cameraButton.addEventListener('click', () => openPhotoInput(elements.cameraInput));
+    elements.libraryButton.addEventListener('click', () => openPhotoInput(elements.libraryInput));
+    elements.cancelPhotoSourceButton.addEventListener('click', closePhotoSourceDialog);
+    elements.photoSourceDialog.addEventListener('click', (event) => {
+        if (event.target === elements.photoSourceDialog) {
+            closePhotoSourceDialog();
+        }
+    });
+    elements.cameraInput.addEventListener('change', handlePhotoSelected);
+    elements.libraryInput.addEventListener('change', handlePhotoSelected);
     elements.editCodeForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const code = elements.editCodeInput.value.trim();

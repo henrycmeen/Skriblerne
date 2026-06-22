@@ -7,7 +7,7 @@
     <title>Skriblerne</title>
     <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-12">
+    <link rel="stylesheet" href="styles.css?v=20260622-14">
 </head>
 <body>
     <div class="app-shell">
@@ -52,7 +52,8 @@
                         </div>
                     </div>
                     <button class="replace-photo-button" id="replacePhotoButton" type="button" hidden>Bytt bilde</button>
-                    <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" hidden>
+                    <input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" hidden>
+                    <input id="libraryInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden>
                     <p class="status-text" id="statusText" role="status"></p>
                 </section>
 
@@ -100,7 +101,16 @@
                 </div>
             </form>
         </div>
+
+        <div class="photo-source-dialog" id="photoSourceDialog" role="dialog" aria-modal="true" aria-labelledby="photoSourceHeading" hidden>
+            <div class="photo-source-panel">
+                <h2 id="photoSourceHeading">Legg til bilde</h2>
+                <button class="review-export-button" id="cameraButton" type="button">Ta bilde</button>
+                <button class="review-export-button" id="libraryButton" type="button">Velg bilde</button>
+                <button class="text-button" id="cancelPhotoSourceButton" type="button">Avbryt</button>
+            </div>
+        </div>
     </div>
-    <script type="module" src="js/app.js?v=20260622-13"></script>
+    <script type="module" src="js/app.js?v=20260622-14"></script>
 </body>
 </html>
