@@ -528,6 +528,17 @@ button {
     box-shadow: 0 0 0 1px var(--text-color);
 }
 
+.day-dot--other-only::before {
+    box-shadow: 0 0 0 1px var(--subtitle-color);
+    filter: grayscale(1);
+}
+
+.day-dot--both::before {
+    box-shadow:
+        0 0 0 1px var(--text-color),
+        0 0 0 3px var(--soft-border);
+}
+
 .day-dot--today {
     box-shadow: 0 0 0 1px var(--text-color);
 }

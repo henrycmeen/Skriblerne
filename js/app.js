@@ -12,6 +12,11 @@ import {
     normalizeIdentity,
     readStoredIdentity
 } from './identity-utils.mjs';
+import {
+    buildOverviewSummary,
+    createOwnerCounts,
+    getOverviewOwnerState
+} from './overview-utils.mjs';
 
 const today = new Date();
 const EDIT_CODE_STORAGE_KEY = 'skriblerne-edit-code';
@@ -496,6 +501,7 @@ function renderOverview() {
     elements.yearGrid.replaceChildren();
     let filledDays = 0;
     let photoCount = 0;
+    const ownerCounts = createOwnerCounts();
     const daysByMonth = groupDaysByMonth(state.calendar.days);
 
     daysByMonth.forEach((monthDays, month) => {
@@ -519,6 +525,10 @@ function renderOverview() {
             if (memories.length > 0) {
                 filledDays += 1;
                 photoCount += memories.length;
+                memories.forEach((memory) => {
+                    const owner = normalizeOwner(memory.owner);
+                    ownerCounts[owner] += 1;
+                });
             }
             dotGrid.appendChild(createDayDot(day));
         });
@@ -527,9 +537,12 @@ function renderOverview() {
         elements.yearGrid.appendChild(section);
     });
 
-    elements.overviewSummary.textContent = photoCount === filledDays
-        ? `${filledDays} bilder i ${state.selectedYear}`
-        : `${photoCount} bilder på ${filledDays} dager i ${state.selectedYear}`;
+    elements.overviewSummary.textContent = buildOverviewSummary({
+        filledDays,
+        ownerCounts,
+        photoCount,
+        year: state.selectedYear
+    });
 }
 
 function groupDaysByMonth(days) {
@@ -545,21 +558,20 @@ function createDayDot(day) {
     const button = document.createElement('button');
     const memories = memoriesForDay(day);
     const previewMemory = selectedOwnerMemoryForDay(day);
-    const imageCountText = memories.length === 0
-        ? ', mangler bilde'
-        : memories.length === 1
-            ? ', har 1 bilde'
-            : `, har ${memories.length} bilder`;
+    const ownerState = getOverviewOwnerState(memories, state.signedInOwner);
 
     button.type = 'button';
     button.className = 'day-dot';
     button.classList.toggle('day-dot--filled', memories.length > 0);
+    if (ownerState.className) {
+        button.classList.add(ownerState.className);
+    }
     button.classList.toggle('day-dot--today', isToday(state.selectedYear, day.monthDay));
     button.classList.toggle('day-dot--selected', day.monthDay === state.selectedMonthDay);
     button.setAttribute('role', 'listitem');
     button.setAttribute(
         'aria-label',
-        `${day.day}.${day.month}. ${day.word}${imageCountText}`
+        `${day.day}.${day.month}. ${day.word}${ownerState.label}`
     );
 
     if (previewMemory?.thumbnailData) {

@@ -18,7 +18,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 - `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
 - `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay` + `owner` (`henry` eller `ellinor`).
-- `index.html`, `js/app.js` og `js/history-utils.mjs` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
+- `index.html`, `js/app.js`, `js/history-utils.mjs` og `js/overview-utils.mjs` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
 - Historikklisten for samme dato henter bare metadata og thumbnails; full `imageData` hentes først for valgt bilde via detaljendepunktet.
 - `ordliste.html`, `js/word-review.js` og `js/review-progress.mjs` brukes til manuell gjennomgang av alle 365 ordene, med egen avhuking for Henry og Ellinor.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
@@ -120,6 +120,6 @@ Frontend deploy når statiske filer er endret:
 
 ```bash
 rsync -a index.html ordliste.html styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
-rsync -a js/app.js js/history-utils.mjs js/identity-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
+rsync -a js/app.js js/history-utils.mjs js/identity-utils.mjs js/overview-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
 rsync -a data/wordReviewCandidates.json /Users/henrymeen/srv/www/henrymeen/skriblerne/data/
 ```
