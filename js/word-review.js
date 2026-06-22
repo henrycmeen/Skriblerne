@@ -9,6 +9,9 @@ let currentWords = [];
 const elements = {
     months: document.getElementById('reviewMonths'),
     summary: document.getElementById('reviewSummary'),
+    status: document.getElementById('reviewStatus'),
+    importButton: document.getElementById('importReviewButton'),
+    importInput: document.getElementById('importReviewInput'),
     exportButton: document.getElementById('exportReviewButton')
 };
 
@@ -22,6 +25,14 @@ function loadReviewState() {
 
 function saveReviewState() {
     localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(reviewState));
+}
+
+function replaceReviewState(nextState) {
+    Object.keys(reviewState).forEach((key) => {
+        delete reviewState[key];
+    });
+    Object.assign(reviewState, nextState);
+    saveReviewState();
 }
 
 async function fetchWords() {
@@ -67,8 +78,9 @@ function render(words) {
     });
 
     updateSummary(words);
+    elements.importButton.disabled = false;
     elements.exportButton.disabled = false;
-    elements.exportButton.addEventListener('click', () => exportReview(words));
+    elements.exportButton.onclick = () => exportReview(words);
 }
 
 function renderWordRow(entry) {
@@ -172,6 +184,11 @@ function updateSummary(words) {
     ].join(' ');
 }
 
+function setReviewStatus(message, tone = 'neutral') {
+    elements.status.textContent = message;
+    elements.status.dataset.tone = tone;
+}
+
 function getReviewStats(words) {
     const finalWords = new Map();
     let reviewed = 0;
@@ -228,6 +245,82 @@ function exportReview(words) {
     link.click();
     URL.revokeObjectURL(link.href);
 }
+
+async function handleImportSelected(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+        return;
+    }
+
+    try {
+        const payload = JSON.parse(await file.text());
+        const result = importReviewPayload(payload, currentWords);
+
+        replaceReviewState(result.reviewState);
+        render(currentWords);
+        setReviewStatus(
+            `${result.reviewed} ${result.reviewed === 1 ? 'markering' : 'markeringer'} importert fra ${file.name}.`,
+            'success'
+        );
+    } catch (error) {
+        console.error(error);
+        setReviewStatus(error.message || 'Kunne ikke importere gjennomgangen.', 'error');
+    } finally {
+        event.target.value = '';
+    }
+}
+
+function importReviewPayload(payload, words) {
+    if (!Array.isArray(words) || words.length === 0) {
+        throw new Error('Ordlisten må være lastet før import.');
+    }
+
+    const exportedWords = Array.isArray(payload?.words)
+        ? payload.words
+        : Array.isArray(payload)
+            ? payload
+            : null;
+
+    if (!exportedWords) {
+        throw new Error('Filen er ikke en gyldig Skriblerne-gjennomgang.');
+    }
+
+    const validDates = new Set(words.map((word) => word.monthDay));
+    const nextState = {};
+    let matched = 0;
+    let reviewed = 0;
+
+    exportedWords.forEach((word) => {
+        if (!word || !validDates.has(word.monthDay)) {
+            return;
+        }
+
+        const review = sanitizeReview(word.review || word);
+        matched += 1;
+
+        if (review.status || review.suggestedWord || review.note) {
+            nextState[word.monthDay] = review;
+            reviewed += 1;
+        }
+    });
+
+    if (matched === 0) {
+        throw new Error('Filen inneholder ingen datoer som finnes i ordlisten.');
+    }
+
+    return { reviewState: nextState, reviewed };
+}
+
+function sanitizeReview(review) {
+    const status = ['approved', 'flagged'].includes(review?.status) ? review.status : '';
+    const suggestedWord = String(review?.suggestedWord || '').trim();
+    const note = String(review?.note || '').trim();
+
+    return { status, suggestedWord, note };
+}
+
+elements.importButton.addEventListener('click', () => elements.importInput.click());
+elements.importInput.addEventListener('change', handleImportSelected);
 
 fetchWords()
     .then(render)

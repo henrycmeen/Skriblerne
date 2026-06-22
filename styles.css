@@ -183,7 +183,8 @@ button {
 .year-memory:focus-visible,
 .comparison-item:focus-visible,
 .day-dot:focus-visible,
-.nav-button:focus-visible {
+.nav-button:focus-visible,
+.review-export-button:focus-visible {
     outline: 2px solid var(--text-color);
     outline-offset: 4px;
 }
@@ -561,6 +562,13 @@ button {
     color: var(--subtitle-color);
 }
 
+.review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
 .review-export-button {
     min-height: 2.75rem;
     padding: 0 1rem;
@@ -579,6 +587,20 @@ button {
 
 .review-export-button:not(:disabled):hover {
     background: var(--hover-bg);
+}
+
+.review-status {
+    min-height: 1.4rem;
+    color: var(--subtitle-color);
+    font-size: 0.9375rem;
+}
+
+.review-status[data-tone="success"] {
+    color: var(--success-color);
+}
+
+.review-status[data-tone="error"] {
+    color: var(--error-color);
 }
 
 .review-months {
