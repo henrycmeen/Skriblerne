@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Skriblerne - gjennomgang av 365 faste ord">
+    <title>Ordlisten - Skriblerne</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="review-shell">
+        <header class="topbar" role="banner">
+            <div>
+                <h1 class="site-title">Skriblerne</h1>
+                <p class="subtitle">Ordgjennomgang</p>
+            </div>
+            <div class="topbar-actions" aria-label="Sidevalg">
+                <a class="text-link" href="index.html">Dagens ord</a>
+            </div>
+        </header>
+
+        <main class="word-review" role="main">
+            <section class="review-intro" aria-labelledby="reviewHeading">
+                <p class="eyebrow">365 faste ord</p>
+                <h2 id="reviewHeading">Gå gjennom ordlisten</h2>
+                <p id="reviewSummary">Laster ordlisten.</p>
+                <button class="review-export-button" id="exportReviewButton" type="button" disabled>Eksporter gjennomgang</button>
+            </section>
+
+            <section class="review-months" id="reviewMonths" aria-label="Ord fordelt på måneder"></section>
+        </main>
+    </div>
+    <script type="module" src="js/word-review.js"></script>
+</body>
+</html>

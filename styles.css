@@ -64,6 +64,12 @@ button {
     gap: 1rem;
 }
 
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .site-title {
     font-size: 1.5rem;
     font-weight: 500;
@@ -153,8 +159,16 @@ button {
     font-weight: 500;
 }
 
+.text-link {
+    color: var(--subtitle-color);
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
 .icon-button:hover,
 .text-button:hover,
+.text-link:hover,
 .year-memory:hover,
 .day-dot:hover,
 .nav-button:hover {
@@ -163,6 +177,7 @@ button {
 
 .icon-button:focus-visible,
 .text-button:focus-visible,
+.text-link:focus-visible,
 .add-photo-button:focus-visible,
 .replace-photo-button:focus-visible,
 .year-memory:focus-visible,
@@ -420,6 +435,141 @@ button {
     display: none;
 }
 
+.review-shell {
+    width: min(100% - 2rem, 960px);
+    min-height: 100vh;
+    margin-inline: auto;
+    padding: 2rem 0 4rem;
+}
+
+.word-review {
+    display: grid;
+    gap: 3rem;
+    padding-top: 6rem;
+}
+
+.review-intro {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    text-align: center;
+}
+
+.review-intro h2 {
+    font-family: "Crimson Text", Georgia, serif;
+    font-size: 3rem;
+    line-height: 1.05;
+}
+
+.review-intro p {
+    color: var(--subtitle-color);
+}
+
+.review-export-button {
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.review-export-button:disabled {
+    color: var(--subtitle-color);
+    cursor: default;
+}
+
+.review-export-button:not(:disabled):hover {
+    background: var(--hover-bg);
+}
+
+.review-months {
+    display: grid;
+    gap: 3rem;
+}
+
+.review-month {
+    display: grid;
+    gap: 1rem;
+}
+
+.review-month h3 {
+    font-family: "Crimson Text", Georgia, serif;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.review-word-list {
+    display: grid;
+    border-top: 1px solid var(--soft-border);
+}
+
+.review-word-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 2fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--soft-border);
+}
+
+.review-word-heading {
+    display: grid;
+    gap: 0.1rem;
+}
+
+.review-word-heading span {
+    color: var(--subtitle-color);
+    font-size: 0.8125rem;
+}
+
+.review-word-heading strong {
+    font-size: 1.1rem;
+}
+
+.review-controls {
+    display: grid;
+    grid-template-columns: auto auto minmax(12rem, 1fr);
+    gap: 1rem;
+    align-items: center;
+}
+
+.review-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-size: 0.9375rem;
+    white-space: nowrap;
+}
+
+.review-check input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--text-color);
+}
+
+.review-note {
+    width: 100%;
+    min-height: 2.5rem;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+}
+
+.review-note::placeholder {
+    color: var(--subtitle-color);
+}
+
+.review-note:focus {
+    outline: 0;
+    border-color: var(--text-color);
+}
+
 @media (max-width: 640px) {
     :root {
         --container-width: min(100% - 2rem, 800px);
@@ -477,6 +627,28 @@ button {
         bottom: 1rem;
         gap: 1.25rem;
         background: var(--bg-color);
+    }
+
+    .topbar-actions {
+        gap: 0.75rem;
+    }
+
+    .word-review {
+        gap: 2.5rem;
+        padding-top: 4rem;
+    }
+
+    .review-intro h2 {
+        font-size: 2.75rem;
+    }
+
+    .review-word-row,
+    .review-controls {
+        grid-template-columns: 1fr;
+    }
+
+    .review-word-row {
+        gap: 0.75rem;
     }
 }
 

@@ -7,7 +7,7 @@
     "dev": "nodemon server.js",
     "init-db": "node scripts/initDb.js",
     "test": "node scripts/validateWords.js",
-    "check": "node --check server.js && node --check js/app.js && node scripts/validateWords.js"
+    "check": "node --check server.js && node --check js/app.js && node --check js/word-review.js && node scripts/validateWords.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
