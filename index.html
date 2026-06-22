@@ -6,7 +6,7 @@
     <meta name="description" content="Skriblerne - En tegnelek av Ellinor og Henry">
     <title>Skriblerne</title>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-6">
+    <link rel="stylesheet" href="styles.css?v=20260622-9">
 </head>
 <body>
     <div class="app-shell">
@@ -28,6 +28,10 @@
                     <div class="date-copy">
                         <p id="selectedDateLabel">Laster dato</p>
                         <h2 id="todayHeading">Laster ord</h2>
+                        <div class="date-tools">
+                            <button class="date-picker-button" id="datePickerButton" type="button">Velg dato</button>
+                            <input class="date-picker-input" id="datePickerInput" type="date" min="1900-01-01" max="9999-12-31" aria-label="Velg dato">
+                        </div>
                     </div>
                     <button class="icon-button" id="nextYearButton" type="button" aria-label="Neste år">›</button>
                 </div>
@@ -91,6 +95,6 @@
             </form>
         </div>
     </div>
-    <script type="module" src="js/app.js?v=20260622-7"></script>
+    <script type="module" src="js/app.js?v=20260622-9"></script>
 </body>
 </html>

@@ -19,6 +19,8 @@ const elements = {
     overviewView: document.getElementById('overviewView'),
     selectedDateLabel: document.getElementById('selectedDateLabel'),
     todayHeading: document.getElementById('todayHeading'),
+    datePickerButton: document.getElementById('datePickerButton'),
+    datePickerInput: document.getElementById('datePickerInput'),
     currentImage: document.getElementById('currentImage'),
     emptyMemory: document.getElementById('emptyMemory'),
     photoFrame: document.getElementById('photoFrame'),
@@ -65,6 +67,36 @@ function normalizeCycleMonthDay(monthDay) {
 function dateFromMonthDay(year, monthDay) {
     const [month, day] = monthDay.split('-').map(Number);
     return new Date(year, month - 1, day);
+}
+
+function formatDateInputValue(year, monthDay) {
+    return `${year}-${monthDay}`;
+}
+
+function parseDateInputValue(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) {
+        return null;
+    }
+
+    const [, yearPart, monthPart, dayPart] = match;
+    const year = Number(yearPart);
+    const month = Number(monthPart);
+    const day = Number(dayPart);
+    const date = new Date(year, month - 1, day);
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return null;
+    }
+
+    return {
+        monthDay: normalizeCycleMonthDay(`${monthPart}-${dayPart}`),
+        year
+    };
 }
 
 function isToday(year, monthDay) {
@@ -169,6 +201,7 @@ function renderDate() {
         ? 'Dagens ord'
         : `${label} ${state.selectedYear}`;
     elements.todayHeading.textContent = day?.word || 'Ingen ord';
+    elements.datePickerInput.value = formatDateInputValue(state.selectedYear, state.selectedMonthDay);
     elements.overviewHeading.textContent = String(state.selectedYear);
 }
 
@@ -375,6 +408,30 @@ async function goToToday() {
     await refreshAll();
 }
 
+async function goToPickedDate(value) {
+    const pickedDate = parseDateInputValue(value);
+
+    if (!pickedDate) {
+        elements.datePickerInput.value = formatDateInputValue(state.selectedYear, state.selectedMonthDay);
+        return;
+    }
+
+    state.selectedYear = pickedDate.year;
+    state.selectedMonthDay = pickedDate.monthDay;
+    state.view = 'today';
+    await refreshAll();
+}
+
+function openDatePicker() {
+    if (typeof elements.datePickerInput.showPicker === 'function') {
+        elements.datePickerInput.showPicker();
+        return;
+    }
+
+    elements.datePickerInput.focus();
+    elements.datePickerInput.click();
+}
+
 function switchView(view) {
     state.view = view;
     renderView();
@@ -460,6 +517,8 @@ function bindEvents() {
     elements.nextYearButton.addEventListener('click', () => changeYear(1));
     elements.overviewPreviousYearButton.addEventListener('click', () => changeYear(-1));
     elements.overviewNextYearButton.addEventListener('click', () => changeYear(1));
+    elements.datePickerButton.addEventListener('click', openDatePicker);
+    elements.datePickerInput.addEventListener('change', (event) => goToPickedDate(event.target.value));
     elements.addPhotoButton.addEventListener('click', () => elements.photoInput.click());
     elements.replacePhotoButton.addEventListener('click', () => elements.photoInput.click());
     elements.photoFrame.addEventListener('click', (event) => {

@@ -106,7 +106,8 @@ button {
 
 .date-copy {
     display: grid;
-    gap: 1.5rem;
+    gap: 1.1rem;
+    justify-items: center;
 }
 
 .date-copy p,
@@ -184,11 +185,43 @@ button {
 .comparison-item:focus-visible,
 .day-dot:focus-visible,
 .nav-button:focus-visible,
+.date-picker-button:focus-visible,
 .review-export-button:focus-visible,
 .review-filter-button:focus-visible,
 .review-next-button:focus-visible {
     outline: 2px solid var(--text-color);
     outline-offset: 4px;
+}
+
+.date-tools {
+    position: relative;
+    display: inline-grid;
+    justify-items: center;
+}
+
+.date-picker-button {
+    min-height: 2rem;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--subtitle-color);
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.date-picker-button:hover {
+    color: var(--text-color);
+    border-bottom-color: var(--text-color);
+}
+
+.date-picker-input {
+    position: absolute;
+    inset: auto 0 0 auto;
+    width: 1px;
+    height: 1px;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .year-strip {
