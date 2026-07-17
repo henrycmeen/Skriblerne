@@ -119,10 +119,10 @@ function main() {
         assertPass(runFirstPass(firstPassPath), 'first-pass review export');
         const firstPass = JSON.parse(fs.readFileSync(firstPassPath, 'utf8'));
         assert.equal(firstPass.words.length, 365);
-        assert.equal(firstPass.stats.candidates, 31);
+        assert.equal(firstPass.stats.candidates, 21);
         assert.equal(
             firstPass.words.filter((word) => word.review.status === 'flagged').length,
-            31
+            21
         );
         assert.deepEqual(
             firstPass.words[0].review.reviewers,
@@ -138,7 +138,7 @@ function main() {
         );
         const firstPassStatus = runStatus(firstPassPath);
         assertPass(firstPassStatus, 'first-pass review status');
-        assert.match(firstPassStatus.stdout, /Markert: 31\/365/);
+        assert.match(firstPassStatus.stdout, /Markert: 21\/365/);
         assert.match(firstPassStatus.stdout, /Henry: 0\/365/);
         assert.match(firstPassStatus.stdout, /Ellinor: 0\/365/);
         assert.match(firstPassStatus.stdout, /Klar for apply: nei/);
@@ -146,7 +146,7 @@ function main() {
         const defaultStatus = runStatus();
         assertPass(defaultStatus, 'default first-pass review status');
         assert.match(defaultStatus.stdout, /Kilde: første-pass kandidatliste/);
-        assert.match(defaultStatus.stdout, /Markert: 31\/365/);
+        assert.match(defaultStatus.stdout, /Markert: 21\/365/);
         assert.match(defaultStatus.stdout, /Klar for apply: nei/);
 
         const missingStatusReview = buildReview({
@@ -154,7 +154,7 @@ function main() {
         });
         assertFailingWith(
             runApply(writeReview(tempDir, 'missing-status', missingStatusReview)),
-            /01-01 \(Snøfnugg\) mangler OK\/Se på-status/,
+            /01-01 \(Marihøne\) mangler OK\/Se på-status/,
             'missing status review'
         );
 
@@ -163,7 +163,7 @@ function main() {
         });
         assertFailingWith(
             runApply(writeReview(tempDir, 'missing-suggestion', missingSuggestionReview)),
-            /01-01 \(Snøfnugg\) er flagget, men mangler nytt ord/,
+            /01-01 \(Marihøne\) er flagget, men mangler nytt ord/,
             'flagged review without suggestion'
         );
 
@@ -172,16 +172,16 @@ function main() {
         });
         assertFailingWith(
             runApply(writeReview(tempDir, 'missing-reviewer', missingReviewerReview)),
-            /01-01 \(Snøfnugg\) mangler gjennomgang fra Ellinor/,
+            /01-01 \(Marihøne\) mangler gjennomgang fra Ellinor/,
             'review without both reviewers'
         );
 
         const duplicateReview = buildReview({
-            '01-01': { status: 'flagged', suggestedWord: 'Kakao' }
+            '01-01': { status: 'flagged', suggestedWord: 'Tokyo' }
         });
         assertFailingWith(
             runApply(writeReview(tempDir, 'duplicate', duplicateReview)),
-            /Duplikat sluttord "Kakao" på 01-01 og 01-02/,
+            /Duplikat sluttord "Tokyo" på 01-01 og 01-02/,
             'duplicate final word review'
         );
 
@@ -189,7 +189,7 @@ function main() {
         missingDateReview.words = missingDateReview.words.filter((word) => word.monthDay !== '01-01');
         assertFailingWith(
             runApply(writeReview(tempDir, 'missing-date', missingDateReview)),
-            /Review-filen mangler 01-01 \(Snøfnugg\)/,
+            /Review-filen mangler 01-01 \(Marihøne\)/,
             'review missing a required date'
         );
 
