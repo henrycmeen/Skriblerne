@@ -1,4 +1,21 @@
-const MONTH_WORDS = [
+const LEGACY_WORDS_BY_DAY = require('../ordbank.json').days;
+const DUPLICATE_WORD_REPLACEMENTS = {
+    Hengekøye: 'Hagestol',
+    Forglemmegei: 'Syrin',
+    Markjordbær: 'Iskrem',
+    Blomsterkrans: 'Solglimt',
+    Skjell: 'Seilbåt',
+    Fyrtårn: 'Kompass',
+    Blåskjell: 'Sjøbris',
+    Solnedgang: 'Regnbue',
+    Telt: 'Kart',
+    Solsikke: 'Kritt',
+    Sopp: 'Kurv',
+    Elg: 'Tåke',
+    Stearinlys: 'Vedkubbe'
+};
+
+const BASE_MONTH_WORDS = [
     {
         month: 1,
         words: [
@@ -425,6 +442,81 @@ const MONTH_WORDS = [
         ]
     }
 ];
+
+function normalizeWord(word) {
+    return word.toLocaleLowerCase('nb-NO');
+}
+
+function restoreLegacyWords(baseMonthWords, legacyWordsByDay) {
+    const baseWords = baseMonthWords.flatMap(({ words }) => words);
+    const restoredWords = [...baseWords];
+    const legacyIndexes = new Set();
+    const restoredLegacyWords = new Set();
+
+    Object.entries(legacyWordsByDay).forEach(([day, word]) => {
+        const normalizedWord = normalizeWord(word);
+
+        if (restoredLegacyWords.has(normalizedWord)) {
+            return;
+        }
+
+        const index = Number(day) - 1;
+        restoredWords[index] = word;
+        legacyIndexes.add(index);
+        restoredLegacyWords.add(normalizedWord);
+    });
+
+    const usedWords = new Set();
+    const duplicateIndexes = [];
+
+    restoredWords.forEach((word, index) => {
+        const normalizedWord = normalizeWord(word);
+
+        if (usedWords.has(normalizedWord)) {
+            if (!legacyIndexes.has(index)) {
+                duplicateIndexes.push(index);
+            }
+            return;
+        }
+
+        usedWords.add(normalizedWord);
+    });
+
+    const availableBaseWords = new Map(
+        baseWords
+            .filter((word) => !usedWords.has(normalizeWord(word)))
+            .map((word) => [normalizeWord(word), word])
+    );
+
+    if (availableBaseWords.size < duplicateIndexes.length) {
+        throw new Error('Not enough unique base words to restore the legacy word list');
+    }
+
+    duplicateIndexes.forEach((index) => {
+        const duplicateWord = restoredWords[index];
+        const replacementWord = DUPLICATE_WORD_REPLACEMENTS[duplicateWord];
+        const normalizedReplacement = normalizeWord(replacementWord || '');
+
+        if (!availableBaseWords.has(normalizedReplacement)) {
+            throw new Error(`Missing unique replacement for duplicate word ${duplicateWord}`);
+        }
+
+        restoredWords[index] = availableBaseWords.get(normalizedReplacement);
+        availableBaseWords.delete(normalizedReplacement);
+    });
+
+    let offset = 0;
+    return baseMonthWords.map(({ month, words }) => {
+        const restoredMonth = {
+            month,
+            words: restoredWords.slice(offset, offset + words.length)
+        };
+        offset += words.length;
+        return restoredMonth;
+    });
+}
+
+const MONTH_WORDS = restoreLegacyWords(BASE_MONTH_WORDS, LEGACY_WORDS_BY_DAY);
 
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 

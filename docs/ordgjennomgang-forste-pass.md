@@ -12,16 +12,6 @@ Importer filen i `ordliste.html`, åpne filteret `Se på`, og avgjør om forslag
 
 | Dato | Nåværende ord | Forslag | Hvorfor se på |
 | --- | --- | --- | --- |
-| 01-18 | Ispinne | Istapp | Ispinne kan leses som sommeris. Istapp er mer vinterlig og lett å fotografere eller tegne. |
-| 02-12 | Kinn | Rosakinn | Kinn alene er litt flatt som bildeoppgave. Rosakinn passer februarkulde bedre. |
-| 02-14 | Kjærlighet | Hjertekort | Kjærlighet er abstrakt. Hjertekort gjør temaet konkret og passer februar bedre som bildeoppgave. |
-| 02-17 | Rødme | Røde kinn | Rødme er abstrakt. Røde kinn er mer konkret for foto og tegning. |
-| 02-26 | Vennskap | Vennebånd | Vennskap er fint, men abstrakt. Vennebånd gir et konkret motiv dere kan lage, finne eller tegne. |
-| 03-17 | Grønnskjær | Grønn mose | Grønnskjær er poetisk og litt uklart. Grønn mose er mer konkret og vårnært. |
-| 03-26 | Kvast | Bjørkekvast | Kvast kan bety flere ting. Bjørkekvast gjør vårkoblingen tydeligere. |
-| 03-28 | Øyeblikk | Vårbilde | Øyeblikk er poetisk, men veldig åpent. Vårbilde gir tydeligere retning. |
-| 04-19 | Aprilsnarr | Tullebriller | Aprilsnarr er en hendelse mer enn et motiv. Tullebriller holder leken i samme spor. |
-| 05-07 | Sjøbris | Sjøskum | Sjøbris er vanskelig å fotografere direkte. Sjøskum beholder kystfølelsen, men blir mer synlig. |
 | 05-16 | Tog | Flaggstang | Tog virker litt tilfeldig rett før 17. mai. Flaggstang peker tydeligere mot måneden. |
 | 06-01 | Midnattssol | Sommersol | Midnattssol er fint, men geografisk smalt. Sommersol fungerer flere steder og er lettere som bilde. |
 | 06-08 | Fluktstol | Solstol | Fluktstol er et litt uvanlig ord. Solstol er enklere og mer direkte. |

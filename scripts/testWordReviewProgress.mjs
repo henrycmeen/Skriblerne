@@ -9,7 +9,8 @@ import {
     markReviewer,
     mergeReviewStates,
     monthProgressLabel,
-    needsReviewer
+    needsReviewer,
+    reconcileSharedReviewState
 } from '../js/review-progress.mjs';
 
 const words = [
@@ -129,6 +130,31 @@ assert.deepEqual(
             reviewers: { henry: true, ellinor: true }
         }
     }
+);
+
+const oldLocalReviewState = {
+    '01-18': {
+        status: 'flagged',
+        suggestedWord: 'Istapp',
+        reviewers: { henry: false, ellinor: false }
+    },
+    '05-16': {
+        status: 'flagged',
+        suggestedWord: 'Flaggstang',
+        reviewers: { henry: false, ellinor: false }
+    }
+};
+const cleanedSharedReviewState = {
+    '05-16': oldLocalReviewState['05-16']
+};
+
+assert.deepEqual(
+    reconcileSharedReviewState(oldLocalReviewState, cleanedSharedReviewState, false),
+    mergeReviewStates({}, cleanedSharedReviewState)
+);
+assert.deepEqual(
+    reconcileSharedReviewState(oldLocalReviewState, cleanedSharedReviewState, true),
+    mergeReviewStates(oldLocalReviewState, cleanedSharedReviewState)
 );
 
 const progress = buildMonthProgress(words, reviewState);

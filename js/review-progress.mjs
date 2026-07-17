@@ -133,6 +133,12 @@ export function mergeReviewStates(existingState = {}, incomingState = {}) {
     return mergedState;
 }
 
+export function reconcileSharedReviewState(localState = {}, sharedState = {}, hasUnsavedChanges = false) {
+    return hasUnsavedChanges
+        ? mergeReviewStates(localState, sharedState)
+        : mergeReviewStates({}, sharedState);
+}
+
 export function isReviewCompleteForApply(review = {}) {
     if (!hasRequiredReviewers(review)) {
         return false;

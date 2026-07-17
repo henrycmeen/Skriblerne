@@ -186,4 +186,23 @@ assert.deepEqual(
     }
 );
 
+const staleGeneratedReview = {
+    status: 'flagged',
+    suggestedWord: 'Istapp',
+    note: 'Ispinne kan leses som sommeris. Istapp er mer vinterlig og lett å fotografere eller tegne.',
+    reviewers: { henry: false, ellinor: false }
+};
+const reviewStateWithoutStaleSuggestion = sanitizeReviewState({
+    '01-18': staleGeneratedReview,
+    '02-12': {
+        status: 'flagged',
+        suggestedWord: 'Rosakinn',
+        note: 'Kinn alene er litt flatt som bildeoppgave. Rosakinn passer februarkulde bedre.',
+        reviewers: { henry: true, ellinor: false }
+    }
+});
+
+assert.equal(reviewStateWithoutStaleSuggestion['01-18'], undefined);
+assert.equal(reviewStateWithoutStaleSuggestion['02-12'].reviewers.henry, true);
+
 console.log('Validated shared word-review state.');

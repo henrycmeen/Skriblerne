@@ -17,8 +17,8 @@ assert.equal(reviewStylesVersion, '20260622-25');
 assert.match(html, /data-review-filter="missing-both"/);
 assert.match(html, /data-review-filter="missing-henry"/);
 assert.match(html, /data-review-filter="missing-ellinor"/);
-assert.match(html, /js\/word-review\.js\?v=20260622-29/);
-assert.match(script, /review-progress\.mjs\?v=20260622-28/);
+assert.match(html, /js\/word-review\.js\?v=20260717-1/);
+assert.match(script, /review-progress\.mjs\?v=20260717-1/);
 assert.match(script, /approveReviewForReviewer/);
 assert.match(script, /review-quick-approve/);
 assert.match(script, /activeFilter === 'mine'/);
@@ -42,6 +42,7 @@ assert.match(script, /event\.preventDefault\(\)/);
 assert.match(script, /payload\.updatedAt/);
 assert.doesNotMatch(script, /replaceReviewState\(result\.reviewState\)/);
 assert.match(script, /mergeReviewState\(result\.reviewState\)/);
+assert.match(script, /reconcileSharedReviewState/);
 assert.match(script, /importert og flettet fra/);
 
 console.log('Validated word-review page initialization.');

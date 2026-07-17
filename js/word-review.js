@@ -17,8 +17,9 @@ import {
     monthProgressLabel,
     needsReviewer,
     normalizeReviewers,
+    reconcileSharedReviewState,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260622-28';
+} from './review-progress.mjs?v=20260717-1';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -614,7 +615,11 @@ async function loadSharedReviewState(options = {}) {
             return;
         }
 
-        mergeReviewState(imported.reviewState);
+        replaceReviewState(reconcileSharedReviewState(
+            reviewState,
+            imported.reviewState,
+            hasUnsavedReviewChanges
+        ));
         render(currentWords);
         setReviewStatus(
             `${imported.reviewed} ${imported.reviewed === 1 ? 'markering' : 'markeringer'} hentet og flettet fra felles gjennomgang.`,
