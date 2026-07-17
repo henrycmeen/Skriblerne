@@ -15,6 +15,10 @@ const {
     serializeWordReview
 } = require('./lib/wordReviewState');
 const {
+    buildFinalWordUpdates,
+    buildTemporaryWordUpdates
+} = require('./lib/wordCycleSync');
+const {
     WORD_CYCLE,
     formatDateForYear,
     getMonthDayFromDate,
@@ -180,15 +184,8 @@ async function syncWordCycle() {
         ]
     });
 
-    await Word.bulkWrite(
-        WORD_CYCLE.map((entry) => ({
-            updateOne: {
-                filter: { monthDay: entry.monthDay },
-                update: { $set: entry },
-                upsert: true
-            }
-        }))
-    );
+    await Word.bulkWrite(buildTemporaryWordUpdates(WORD_CYCLE));
+    await Word.bulkWrite(buildFinalWordUpdates(WORD_CYCLE));
 }
 
 // Get today's word
