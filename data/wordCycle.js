@@ -1,4 +1,19 @@
 const LEGACY_WORDS_BY_DAY = require('../ordbank.json').days;
+const DUPLICATE_WORD_REPLACEMENTS = {
+    Hengekøye: 'Hagestol',
+    Forglemmegei: 'Syrin',
+    Markjordbær: 'Iskrem',
+    Blomsterkrans: 'Solglimt',
+    Skjell: 'Seilbåt',
+    Fyrtårn: 'Kompass',
+    Blåskjell: 'Sjøbris',
+    Solnedgang: 'Regnbue',
+    Telt: 'Kart',
+    Solsikke: 'Kritt',
+    Sopp: 'Kurv',
+    Elg: 'Tåke',
+    Stearinlys: 'Vedkubbe'
+};
 
 const BASE_MONTH_WORDS = [
     {
@@ -467,14 +482,27 @@ function restoreLegacyWords(baseMonthWords, legacyWordsByDay) {
         usedWords.add(normalizedWord);
     });
 
-    const availableBaseWords = baseWords.filter((word) => !usedWords.has(normalizeWord(word)));
+    const availableBaseWords = new Map(
+        baseWords
+            .filter((word) => !usedWords.has(normalizeWord(word)))
+            .map((word) => [normalizeWord(word), word])
+    );
 
-    if (availableBaseWords.length < duplicateIndexes.length) {
+    if (availableBaseWords.size < duplicateIndexes.length) {
         throw new Error('Not enough unique base words to restore the legacy word list');
     }
 
     duplicateIndexes.forEach((index) => {
-        restoredWords[index] = availableBaseWords.shift();
+        const duplicateWord = restoredWords[index];
+        const replacementWord = DUPLICATE_WORD_REPLACEMENTS[duplicateWord];
+        const normalizedReplacement = normalizeWord(replacementWord || '');
+
+        if (!availableBaseWords.has(normalizedReplacement)) {
+            throw new Error(`Missing unique replacement for duplicate word ${duplicateWord}`);
+        }
+
+        restoredWords[index] = availableBaseWords.get(normalizedReplacement);
+        availableBaseWords.delete(normalizedReplacement);
     });
 
     let offset = 0;

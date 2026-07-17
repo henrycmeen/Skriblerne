@@ -31,4 +31,28 @@ assert.equal(normalizedLegacyWords.size, 129);
 assert.equal(WORD_CYCLE.length, 365);
 assert.equal(cycleWords.size, 365);
 
+const expectedDuplicateReplacements = {
+    '05-15': 'Hagestol',
+    '05-29': 'Syrin',
+    '06-03': 'Iskrem',
+    '06-15': 'Solglimt',
+    '06-19': 'Seilbåt',
+    '07-05': 'Kompass',
+    '07-08': 'Sjøbris',
+    '07-12': 'Regnbue',
+    '07-26': 'Kart',
+    '08-03': 'Kritt',
+    '09-07': 'Kurv',
+    '09-20': 'Tåke',
+    '10-11': 'Vedkubbe'
+};
+
+Object.entries(expectedDuplicateReplacements).forEach(([monthDay, word]) => {
+    assert.equal(
+        WORD_CYCLE.find((entry) => entry.monthDay === monthDay)?.word,
+        word,
+        `Expected ${monthDay} to use the curated duplicate replacement ${word}`
+    );
+});
+
 console.log('Validated 129 unique legacy words in the active cycle.');
