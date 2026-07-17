@@ -15,6 +15,11 @@ const {
     serializeWordReview
 } = require('./lib/wordReviewState');
 const {
+    buildFinalWordUpdates,
+    buildTemporaryWordUpdates
+} = require('./lib/wordCycleSync');
+const { bootstrapApplication } = require('./lib/applicationBootstrap');
+const {
     WORD_CYCLE,
     formatDateForYear,
     getMonthDayFromDate,
@@ -33,14 +38,6 @@ const ALLOWED_ORIGINS = new Set([
     'https://www.henrymeen.no',
     'https://henrycmeen.github.io'
 ]);
-
-mongoose.connect(process.env.MONGODB_URI)
-    .then(async () => {
-        await syncMemoryOwnership();
-        await syncWordCycle();
-        console.log('Connected to MongoDB');
-    })
-    .catch(err => console.error('MongoDB connection error:', err));
 
 app.use((req, res, next) => {
     const origin = req.headers.origin;
@@ -180,15 +177,8 @@ async function syncWordCycle() {
         ]
     });
 
-    await Word.bulkWrite(
-        WORD_CYCLE.map((entry) => ({
-            updateOne: {
-                filter: { monthDay: entry.monthDay },
-                update: { $set: entry },
-                upsert: true
-            }
-        }))
-    );
+    await Word.bulkWrite(buildTemporaryWordUpdates(WORD_CYCLE));
+    await Word.bulkWrite(buildFinalWordUpdates(WORD_CYCLE));
 }
 
 // Get today's word
@@ -378,6 +368,16 @@ app.get('/api/word/random', (_req, res) => {
     res.json(word);
 });
 
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+bootstrapApplication({
+    connect: () => mongoose.connect(process.env.MONGODB_URI),
+    syncSteps: [syncMemoryOwnership, syncWordCycle],
+    listen: () => {
+        console.log('Connected to MongoDB');
+        return app.listen(port, () => {
+            console.log(`Server running at http://localhost:${port}`);
+        });
+    }
+}).catch((error) => {
+    console.error('Server startup failed:', error);
+    process.exit(1);
 });
