@@ -17,7 +17,7 @@ assert.equal(reviewStylesVersion, '20260622-25');
 assert.match(html, /data-review-filter="missing-both"/);
 assert.match(html, /data-review-filter="missing-henry"/);
 assert.match(html, /data-review-filter="missing-ellinor"/);
-assert.match(html, /js\/word-review\.js\?v=20260717-1/);
+assert.match(html, /js\/word-review\.js\?v=20260718-1/);
 assert.match(script, /review-progress\.mjs\?v=20260717-1/);
 assert.match(script, /approveReviewForReviewer/);
 assert.match(script, /review-quick-approve/);
@@ -44,5 +44,6 @@ assert.doesNotMatch(script, /replaceReviewState\(result\.reviewState\)/);
 assert.match(script, /mergeReviewState\(result\.reviewState\)/);
 assert.match(script, /reconcileSharedReviewState/);
 assert.match(script, /importert og flettet fra/);
+assert.match(script, /entry\.word \|\| 'Tomt ord'/);
 
 console.log('Validated word-review page initialization.');

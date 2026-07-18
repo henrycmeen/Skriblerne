@@ -27,8 +27,7 @@ const wordSchema = new mongoose.Schema({
         max: 31
     },
     word: {
-        type: String,
-        unique: true
+        type: String
     }
 }, {
     timestamps: true

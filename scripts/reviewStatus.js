@@ -118,10 +118,18 @@ function getReviewStatus(words) {
             stats.replacements += 1;
         }
 
-        if (finalWords.has(normalizedFinalWord)) {
-            stats.duplicateFinalWords += 1;
-        } else {
-            finalWords.set(normalizedFinalWord, entry.monthDay);
+        if (normalizedFinalWord && finalWords.has(normalizedFinalWord)) {
+            const firstWord = finalWords.get(normalizedFinalWord);
+            const preservesHistoricalDuplicate = (
+                normalizeWord(firstWord.originalWord) === normalizedFinalWord &&
+                normalizeWord(originalWord) === normalizedFinalWord
+            );
+
+            if (!preservesHistoricalDuplicate) {
+                stats.duplicateFinalWords += 1;
+            }
+        } else if (normalizedFinalWord) {
+            finalWords.set(normalizedFinalWord, { monthDay: entry.monthDay, originalWord });
         }
     });
 

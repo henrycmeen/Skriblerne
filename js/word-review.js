@@ -302,6 +302,7 @@ function render(words) {
 function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
     const reviewers = normalizeReviewers(review.reviewers);
+    const wordLabel = entry.word || 'Tomt ord';
     const activeReviewerHasApproved = review.status === 'approved' && reviewers[activeReviewer];
     const row = document.createElement('article');
     row.className = 'review-word-row';
@@ -311,7 +312,7 @@ function renderWordRow(entry) {
     heading.className = 'review-word-heading';
     heading.innerHTML = `
         <span>${entry.day}.${entry.month}.</span>
-        <strong>${entry.word}</strong>
+        <strong>${wordLabel}</strong>
     `;
 
     const controls = document.createElement('div');
@@ -340,11 +341,11 @@ function renderWordRow(entry) {
     quickApproveButton.textContent = activeReviewerHasApproved
         ? `OK av ${OWNER_LABELS[activeReviewer]}`
         : `OK som ${OWNER_LABELS[activeReviewer]}`;
-    quickApproveButton.setAttribute('aria-label', `Godkjenn ${entry.word} som ${OWNER_LABELS[activeReviewer]}`);
+    quickApproveButton.setAttribute('aria-label', `Godkjenn ${wordLabel} som ${OWNER_LABELS[activeReviewer]}`);
 
     const reviewerGroup = document.createElement('div');
     reviewerGroup.className = 'review-reviewers';
-    reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${entry.word}`);
+    reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${wordLabel}`);
 
     REQUIRED_REVIEWERS.forEach((reviewer) => {
         const reviewerLabel = document.createElement('label');
@@ -412,7 +413,7 @@ function renderWordRow(entry) {
     suggestedWord.type = 'text';
     suggestedWord.placeholder = 'Nytt ord';
     suggestedWord.value = review.suggestedWord || '';
-    suggestedWord.setAttribute('aria-label', `Nytt ord for ${entry.word}`);
+    suggestedWord.setAttribute('aria-label', `Nytt ord for ${wordLabel}`);
     suggestedWord.addEventListener('input', (event) => {
         setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
@@ -427,7 +428,7 @@ function renderWordRow(entry) {
     note.type = 'text';
     note.placeholder = 'Forslag eller kommentar';
     note.value = review.note || '';
-    note.setAttribute('aria-label', `Forslag eller kommentar til ${entry.word}`);
+    note.setAttribute('aria-label', `Forslag eller kommentar til ${wordLabel}`);
     note.addEventListener('input', (event) => {
         setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
@@ -763,10 +764,19 @@ function getReviewStats(words) {
         if (suggestedWord && suggestedWord !== originalWord) {
             suggested += 1;
         }
-        if (finalWords.has(finalWord)) {
-            duplicateCount += 1;
+        if (finalWord && finalWords.has(finalWord)) {
+            const firstWord = finalWords.get(finalWord);
+            const preservesHistoricalDuplicate = (
+                firstWord.originalWord === finalWord &&
+                originalWord === finalWord
+            );
+
+            if (!preservesHistoricalDuplicate) {
+                duplicateCount += 1;
+            }
+        } else if (finalWord) {
+            finalWords.set(finalWord, { monthDay: word.monthDay, originalWord });
         }
-        finalWords.set(finalWord, word.monthDay);
     });
 
     return {

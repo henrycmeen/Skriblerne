@@ -16,7 +16,8 @@ if (WORD_CYCLE.length !== expectedDays) {
 }
 
 const monthDays = new Set();
-const words = new Set();
+let assignedWords = 0;
+let emptyWords = 0;
 
 WORD_CYCLE.forEach((entry, index) => {
     if (entry.dayOfYear !== index + 1) {
@@ -28,12 +29,18 @@ WORD_CYCLE.forEach((entry, index) => {
     }
     monthDays.add(entry.monthDay);
 
-    const normalizedWord = entry.word.toLocaleLowerCase('nb-NO');
-    if (words.has(normalizedWord)) {
-        errors.push(`Duplicate word ${entry.word}`);
+    if (typeof entry.word !== 'string') {
+        errors.push(`Expected ${entry.monthDay} word to be a string`);
+    } else if (entry.word === '') {
+        emptyWords += 1;
+    } else {
+        assignedWords += 1;
     }
-    words.add(normalizedWord);
 });
+
+if (assignedWords !== 130 || emptyWords !== 235) {
+    errors.push(`Expected 130 assigned and 235 empty words, got ${assignedWords} assigned and ${emptyWords} empty`);
+}
 
 if (normalizeCycleMonthDay('02-29') !== '02-28') {
     errors.push('Expected 02-29 to normalize to 02-28 in the 365-day cycle');
@@ -68,4 +75,4 @@ if (errors.length > 0) {
     process.exit(1);
 }
 
-console.log(`Validated ${WORD_CYCLE.length} fixed words.`);
+console.log(`Validated ${WORD_CYCLE.length} fixed dates with ${assignedWords} assigned words.`);

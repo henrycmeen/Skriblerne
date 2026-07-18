@@ -1,6 +1,6 @@
 # Skriblerne
 
-Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. Appen viser ett fast ord per kalenderdato. Ordet gjentas på samme dato hvert år, mens bilder lagres per år og dato slik at samme dag kan sammenlignes over tid.
+Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. De 130 opprinnelige ordene ligger på sine historiske dagnumre. De resterende datoene er tomme til nye ord er valgt i ordgjennomgangen. Et valgt ord gjentas på samme dato hvert år, mens bilder lagres per år og dato slik at samme dag kan sammenlignes over tid.
 
 ## Produksjon
 
@@ -12,7 +12,7 @@ Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. Appe
 
 ## Arkitektur
 
-Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
+Skriblerne 2.0 bruker én fast 365-dagers datosyklus i `data/wordCycle.js`, med 130 historiske ord og 235 åpne plasser.
 
 - 29. februar har ikke egen database-dato. På skuddår normaliseres dagens ord til 28. februar for å holde syklusen på 365 faste datoer.
 - `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
@@ -26,7 +26,7 @@ Skriblerne 2.0 bruker én fast 365-dagers ordsyklus i `data/wordCycle.js`.
 
 ## Funksjoner
 
-- Dagens ord med bildeopplasting fra kamera eller bildebibliotek.
+- Dagens ord med bildeopplasting fra kamera eller bildebibliotek når datoen har fått et ord.
 - Årsoversikt med 365 prikker, en for hver dato.
 - Navigasjon mellom år.
 - Diskret datovelger for å gå direkte til en dato og laste opp bilde der.
@@ -47,7 +47,7 @@ npm run review:status -- <review.json>
 npm run review:apply -- <review.json>
 ```
 
-`npm run check` kjører syntakssjekk av backend/frontend-script, validerer at ordsyklusen har 365 unike datoer og 365 unike ord, og tester at review-eksporter stoppes ved manglende status, manglende Henry/Ellinor-gjennomgang, manglende nytt ord og duplikate sluttord.
+`npm run check` kjører syntakssjekk av backend/frontend-script, validerer 365 unike datoer, den eksakte historiske rekkefølgen og 235 tomme plasser, og tester at review-eksporter stoppes ved manglende status, manglende Henry/Ellinor-gjennomgang, manglende nytt ord og nye duplikate sluttord.
 
 ## Miljøvariabler
 
@@ -97,7 +97,7 @@ npm run review:status -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 npm run review:apply -- ~/Downloads/skriblerne-ordgjennomgang-YYYY-MM-DD.json
 ```
 
-`review:status` uten argument bygger status fra første-pass kandidatlisten. Med en JSON-sti viser den fremdrift og om den eksporterte filen er klar for apply. `review:apply` krever eksplisitt JSON-sti, og krever at alle 365 datoer finnes i filen, at alle ord er markert, at både Henry og Ellinor har vurdert alle ord, og at alle `Se på`-ord har et nytt ord. Det feiler også på duplikate sluttord.
+`review:status` uten argument bygger status fra første-pass kandidatlisten. Med en JSON-sti viser den fremdrift og om den eksporterte filen er klar for apply. `review:apply` krever eksplisitt JSON-sti, og krever at alle 365 datoer finnes i filen, at alle ord er markert, at både Henry og Ellinor har vurdert alle ord, og at alle `Se på`-ord har et nytt ord. Det historiske duplikatet `Solsystem` er tillatt; nye duplikate sluttord stoppes.
 
 For å lage en preview-fil:
 

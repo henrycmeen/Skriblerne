@@ -15,8 +15,8 @@ function buildReview(overrides = {}) {
         words: WORD_CYCLE.map((word) => ({
             ...word,
             review: {
-                status: 'approved',
-                suggestedWord: '',
+                status: word.word ? 'approved' : 'flagged',
+                suggestedWord: word.word ? '' : `Nytt ord ${word.monthDay}`,
                 note: '',
                 reviewers: {
                     henry: true,
