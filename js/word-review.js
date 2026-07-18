@@ -309,11 +309,12 @@ function renderWordRow(entry) {
     row.dataset.monthDay = entry.monthDay;
 
     const heading = document.createElement('div');
+    const dateLabel = document.createElement('span');
+    const wordName = document.createElement('strong');
     heading.className = 'review-word-heading';
-    heading.innerHTML = `
-        <span>${entry.day}.${entry.month}.</span>
-        <strong>${wordLabel}</strong>
-    `;
+    dateLabel.textContent = `${entry.day}.${entry.month}.`;
+    wordName.textContent = wordLabel;
+    heading.append(dateLabel, wordName);
 
     const controls = document.createElement('div');
     controls.className = 'review-controls';

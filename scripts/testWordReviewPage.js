@@ -45,5 +45,7 @@ assert.match(script, /mergeReviewState\(result\.reviewState\)/);
 assert.match(script, /reconcileSharedReviewState/);
 assert.match(script, /importert og flettet fra/);
 assert.match(script, /entry\.word \|\| 'Tomt ord'/);
+assert.match(script, /wordName\.textContent = wordLabel/);
+assert.doesNotMatch(script, /heading\.innerHTML/);
 
 console.log('Validated word-review page initialization.');
