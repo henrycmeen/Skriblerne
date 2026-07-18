@@ -16,7 +16,8 @@ const {
 } = require('./lib/wordReviewState');
 const {
     buildFinalWordUpdates,
-    buildTemporaryWordUpdates
+    buildTemporaryWordUpdates,
+    findObsoleteWordIndexes
 } = require('./lib/wordCycleSync');
 const { bootstrapApplication } = require('./lib/applicationBootstrap');
 const {
@@ -158,11 +159,9 @@ async function syncMemoryOwnership() {
 
 async function dropLegacyWordIndexes() {
     const indexes = await Word.collection.indexes();
-    const legacyIndexNames = new Set(['date_1']);
 
     await Promise.all(
-        indexes
-            .filter((index) => legacyIndexNames.has(index.name))
+        findObsoleteWordIndexes(indexes)
             .map((index) => Word.collection.dropIndex(index.name))
     );
 }
@@ -187,7 +186,7 @@ app.get('/api/word/today', async (req, res) => {
     const monthDay = getMonthDayFromDate(today);
     const word = getWordForMonthDay(monthDay);
 
-    if (!word) {
+    if (!word?.word) {
         return res.status(404).json({ error: 'Ingen ord for denne datoen' });
     }
 
@@ -315,6 +314,10 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
             return res.status(400).json({ error: 'Ugyldig dato' });
         }
 
+        if (!word.word) {
+            return res.status(409).json({ error: 'Denne datoen mangler ord. Fyll inn ordlisten først.' });
+        }
+
         if (isFutureCycleDate(year, monthDay)) {
             return res.status(400).json({ error: 'Du kan ikke lagre bilde for en fremtidig dato.' });
         }
@@ -364,7 +367,8 @@ app.post('/api/words', (_req, res) => {
 });
 
 app.get('/api/word/random', (_req, res) => {
-    const word = WORD_CYCLE[Math.floor(Math.random() * WORD_CYCLE.length)];
+    const assignedWords = WORD_CYCLE.filter((entry) => entry.word);
+    const word = assignedWords[Math.floor(Math.random() * assignedWords.length)];
     res.json(word);
 });
 

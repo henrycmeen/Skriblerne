@@ -189,6 +189,10 @@ function selectedDay() {
     return state.calendar?.days.find((day) => day.monthDay === state.selectedMonthDay) || null;
 }
 
+function selectedDayHasWord() {
+    return Boolean(selectedDay()?.word?.trim());
+}
+
 function cacheMemory(memory) {
     if (memory?.imageData) {
         state.comparisonMemoryCache.set(getMemoryKey(memory), memory);
@@ -236,6 +240,11 @@ function resolveEditCode(code) {
 function openPhotoSourceDialog() {
     if (selectedDateIsFuture()) {
         setStatus('Du kan ikke legge inn bilde for en fremtidig dato.', 'error');
+        return;
+    }
+
+    if (!selectedDayHasWord()) {
+        setStatus('Fyll inn ordet i ordlisten før du legger til bilde.', 'error');
         return;
     }
 
@@ -372,15 +381,18 @@ function renderDate() {
 
 function renderPhoto() {
     const isFutureDate = selectedDateIsFuture();
+    const hasWord = selectedDayHasWord();
     const uploadLabel = photoActionLabel();
 
     elements.emptyMemoryText.textContent = isFutureDate
         ? 'Bilde kan legges inn når datoen kommer'
-        : uploadLabel;
-    elements.addPhotoButton.disabled = isFutureDate;
+        : hasWord
+            ? uploadLabel
+            : 'Fyll inn ordet i ordlisten før du legger til bilde.';
+    elements.addPhotoButton.disabled = isFutureDate || !hasWord;
     elements.addPhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
     elements.replacePhotoButton.textContent = uploadLabel;
-    elements.replacePhotoButton.disabled = isFutureDate;
+    elements.replacePhotoButton.disabled = isFutureDate || !hasWord;
     elements.replacePhotoButton.setAttribute('aria-label', `${uploadLabel} for valgt dato`);
 
     if (state.currentMemory?.imageData) {

@@ -150,6 +150,9 @@ function validateAndBuild(words) {
 
         if (status === 'approved') {
             stats.approved += 1;
+            if (!normalizeWord(entry.word)) {
+                errors.push(`${entry.monthDay} har ikke noe ord å godkjenne; bruk Se på og fyll inn nytt ord.`);
+            }
         }
 
         if (status === 'flagged') {
@@ -163,17 +166,23 @@ function validateAndBuild(words) {
         const normalizedFinalWord = normalizeWord(finalWord);
         if (!normalizedFinalWord) {
             errors.push(`${entry.monthDay} har tomt sluttord.`);
+        } else if (finalWordsByNormalizedWord.has(normalizedFinalWord)) {
+            const firstDate = finalWordsByNormalizedWord.get(normalizedFinalWord);
+            const firstOriginalWord = currentByMonthDay.get(firstDate)?.word;
+            const preservesHistoricalDuplicate = (
+                normalizeWord(firstOriginalWord) === normalizedFinalWord &&
+                normalizeWord(entry.word) === normalizedFinalWord
+            );
+
+            if (!preservesHistoricalDuplicate) {
+                errors.push(`Duplikat sluttord "${finalWord}" på ${firstDate} og ${entry.monthDay}.`);
+            }
+        } else {
+            finalWordsByNormalizedWord.set(normalizedFinalWord, entry.monthDay);
         }
 
         if (suggestedWord && normalizeWord(suggestedWord) !== normalizeWord(entry.word)) {
             stats.replacements += 1;
-        }
-
-        if (finalWordsByNormalizedWord.has(normalizedFinalWord)) {
-            const firstDate = finalWordsByNormalizedWord.get(normalizedFinalWord);
-            errors.push(`Duplikat sluttord "${finalWord}" på ${firstDate} og ${entry.monthDay}.`);
-        } else {
-            finalWordsByNormalizedWord.set(normalizedFinalWord, entry.monthDay);
         }
 
         finalWordsByMonthDay.set(entry.monthDay, finalWord);
@@ -198,7 +207,7 @@ function validateAndBuild(words) {
 
 function validateMonthWords(monthWords, errors) {
     const monthCount = monthWords.reduce((sum, month) => sum + month.words.length, 0);
-    const normalizedWords = new Set();
+    const normalizedWordCounts = new Map();
 
     if (monthCount !== 365) {
         errors.push(`Ordlisten har ${monthCount} ord, forventet 365.`);
@@ -220,13 +229,16 @@ function validateMonthWords(monthWords, errors) {
                 errors.push(`Ordet "${word}" kan ikke inneholde linjeskift.`);
             }
 
-            normalizedWords.add(normalizeWord(word));
+            const normalizedWord = normalizeWord(word);
+            normalizedWordCounts.set(normalizedWord, (normalizedWordCounts.get(normalizedWord) || 0) + 1);
         });
     });
 
-    if (normalizedWords.size !== 365) {
-        errors.push(`Ordlisten har ${normalizedWords.size} unike ord, forventet 365.`);
-    }
+    [...normalizedWordCounts.entries()]
+        .filter(([word, count]) => count > 1 && !(word === 'solsystem' && count === 2))
+        .forEach(([word, count]) => {
+            errors.push(`Ordlisten har sluttordet "${word}" ${count} ganger.`);
+        });
 }
 
 function quoteWord(word) {

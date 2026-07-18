@@ -19,7 +19,7 @@ import {
     normalizeReviewers,
     reconcileSharedReviewState,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260717-1';
+} from './review-progress.mjs?v=20260718-1';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -302,17 +302,20 @@ function render(words) {
 function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
     const reviewers = normalizeReviewers(review.reviewers);
+    const hasWord = Boolean(entry.word.trim());
+    const wordLabel = entry.word || 'Tomt ord';
     const activeReviewerHasApproved = review.status === 'approved' && reviewers[activeReviewer];
     const row = document.createElement('article');
     row.className = 'review-word-row';
     row.dataset.monthDay = entry.monthDay;
 
     const heading = document.createElement('div');
+    const dateLabel = document.createElement('span');
+    const wordName = document.createElement('strong');
     heading.className = 'review-word-heading';
-    heading.innerHTML = `
-        <span>${entry.day}.${entry.month}.</span>
-        <strong>${entry.word}</strong>
-    `;
+    dateLabel.textContent = `${entry.day}.${entry.month}.`;
+    wordName.textContent = wordLabel;
+    heading.append(dateLabel, wordName);
 
     const controls = document.createElement('div');
     controls.className = 'review-controls';
@@ -324,6 +327,7 @@ function renderWordRow(entry) {
         <span>OK</span>
     `;
     const approvedInput = approvedLabel.querySelector('input');
+    approvedInput.disabled = !hasWord;
 
     const flaggedLabel = document.createElement('label');
     flaggedLabel.className = 'review-check';
@@ -336,15 +340,17 @@ function renderWordRow(entry) {
     const quickApproveButton = document.createElement('button');
     quickApproveButton.type = 'button';
     quickApproveButton.className = 'review-quick-approve';
-    quickApproveButton.disabled = activeReviewerHasApproved;
-    quickApproveButton.textContent = activeReviewerHasApproved
-        ? `OK av ${OWNER_LABELS[activeReviewer]}`
-        : `OK som ${OWNER_LABELS[activeReviewer]}`;
-    quickApproveButton.setAttribute('aria-label', `Godkjenn ${entry.word} som ${OWNER_LABELS[activeReviewer]}`);
+    quickApproveButton.disabled = !hasWord || activeReviewerHasApproved;
+    quickApproveButton.textContent = !hasWord
+        ? 'Fyll inn nytt ord'
+        : activeReviewerHasApproved
+            ? `OK av ${OWNER_LABELS[activeReviewer]}`
+            : `OK som ${OWNER_LABELS[activeReviewer]}`;
+    quickApproveButton.setAttribute('aria-label', `Godkjenn ${wordLabel} som ${OWNER_LABELS[activeReviewer]}`);
 
     const reviewerGroup = document.createElement('div');
     reviewerGroup.className = 'review-reviewers';
-    reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${entry.word}`);
+    reviewerGroup.setAttribute('aria-label', `Gjennomgått av ${wordLabel}`);
 
     REQUIRED_REVIEWERS.forEach((reviewer) => {
         const reviewerLabel = document.createElement('label');
@@ -412,7 +418,7 @@ function renderWordRow(entry) {
     suggestedWord.type = 'text';
     suggestedWord.placeholder = 'Nytt ord';
     suggestedWord.value = review.suggestedWord || '';
-    suggestedWord.setAttribute('aria-label', `Nytt ord for ${entry.word}`);
+    suggestedWord.setAttribute('aria-label', `Nytt ord for ${wordLabel}`);
     suggestedWord.addEventListener('input', (event) => {
         setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
@@ -427,7 +433,7 @@ function renderWordRow(entry) {
     note.type = 'text';
     note.placeholder = 'Forslag eller kommentar';
     note.value = review.note || '';
-    note.setAttribute('aria-label', `Forslag eller kommentar til ${entry.word}`);
+    note.setAttribute('aria-label', `Forslag eller kommentar til ${wordLabel}`);
     note.addEventListener('input', (event) => {
         setReview(entry.monthDay, {
             ...reviewState[entry.monthDay],
@@ -744,7 +750,7 @@ function getReviewStats(words) {
         if (review.status) {
             reviewed += 1;
         }
-        if (!isReviewCompleteForApply(review)) {
+        if (!isReviewCompleteForApply(review, word.word)) {
             open += 1;
         }
         REQUIRED_REVIEWERS.forEach((reviewer) => {
@@ -763,10 +769,19 @@ function getReviewStats(words) {
         if (suggestedWord && suggestedWord !== originalWord) {
             suggested += 1;
         }
-        if (finalWords.has(finalWord)) {
-            duplicateCount += 1;
+        if (finalWord && finalWords.has(finalWord)) {
+            const firstWord = finalWords.get(finalWord);
+            const preservesHistoricalDuplicate = (
+                firstWord.originalWord === finalWord &&
+                originalWord === finalWord
+            );
+
+            if (!preservesHistoricalDuplicate) {
+                duplicateCount += 1;
+            }
+        } else if (finalWord) {
+            finalWords.set(finalWord, { monthDay: word.monthDay, originalWord });
         }
-        finalWords.set(finalWord, word.monthDay);
     });
 
     return {
@@ -796,7 +811,7 @@ function matchesReviewFilter(word, filter = activeFilter) {
     const originalWord = normalizeWord(word.word);
 
     if (filter === 'open') {
-        return !isReviewCompleteForApply(review);
+        return !isReviewCompleteForApply(review, word.word);
     }
 
     if (filter === 'mine') {

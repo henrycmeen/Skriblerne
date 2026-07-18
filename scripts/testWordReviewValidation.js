@@ -15,8 +15,8 @@ function buildReview(overrides = {}) {
         words: WORD_CYCLE.map((word) => ({
             ...word,
             review: {
-                status: 'approved',
-                suggestedWord: '',
+                status: word.word ? 'approved' : 'flagged',
+                suggestedWord: word.word ? '' : `Nytt ord ${word.monthDay}`,
                 note: '',
                 reviewers: {
                     henry: true,
@@ -183,6 +183,15 @@ function main() {
             runApply(writeReview(tempDir, 'duplicate', duplicateReview)),
             /Duplikat sluttord "Tokyo" på 01-01 og 01-02/,
             'duplicate final word review'
+        );
+
+        const approvedBlankReview = buildReview({
+            '05-11': { status: 'approved', suggestedWord: '' }
+        });
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'approved-blank', approvedBlankReview)),
+            /05-11 har ikke noe ord å godkjenne; bruk Se på og fyll inn nytt ord/,
+            'approved blank word review'
         );
 
         const missingDateReview = buildReview();

@@ -30,11 +30,13 @@ const reviewState = {
 
 assert.equal(hasRequiredReviewers({ reviewers: { henry: true, ellinor: true } }), true);
 assert.equal(hasRequiredReviewers({ reviewers: { henry: true } }), false);
-assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: true, ellinor: true } }), true);
-assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: true } }), false);
-assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: 'Nytt ord', reviewers: { henry: true, ellinor: true } }), true);
-assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: '' , reviewers: { henry: true, ellinor: true } }), false);
-assert.equal(isReviewCompleteForApply({}), false);
+assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: true, ellinor: true } }, 'Snøfnugg'), true);
+assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: true } }, 'Snøfnugg'), false);
+assert.equal(isReviewCompleteForApply({ status: 'approved', reviewers: { henry: true, ellinor: true } }, ''), false);
+assert.equal(isReviewCompleteForApply({ status: 'approved', suggestedWord: 'Nytt ord', reviewers: { henry: true, ellinor: true } }, ''), false);
+assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: 'Nytt ord', reviewers: { henry: true, ellinor: true } }, ''), true);
+assert.equal(isReviewCompleteForApply({ status: 'flagged', suggestedWord: '' , reviewers: { henry: true, ellinor: true } }, ''), false);
+assert.equal(isReviewCompleteForApply({}, ''), false);
 assert.equal(needsReviewer({ reviewers: { henry: true } }, 'henry'), false);
 assert.equal(needsReviewer({ reviewers: { henry: true } }, 'ellinor'), true);
 assert.deepEqual(getMissingReviewerCounts(words, reviewState), {
@@ -165,6 +167,13 @@ assert.deepEqual(progress, [
 ]);
 assert.equal(monthProgressLabel(progress[0], 'januar'), 'januar 2/3');
 assert.equal(monthProgressLabel(progress[1], 'februar'), 'februar 0/2');
+assert.deepEqual(
+    buildMonthProgress(
+        [{ month: 5, monthDay: '05-11', word: '' }],
+        { '05-11': { status: 'approved', reviewers: { henry: true, ellinor: true } } }
+    ),
+    [{ month: 5, total: 1, complete: 0, open: 1, flagged: 0, missingReviewers: 0 }]
+);
 assert.equal(
     buildReviewSyncStatus(),
     'Ingen felles gjennomgang lagret ennå. Ingen ulagrede lokale endringer.'

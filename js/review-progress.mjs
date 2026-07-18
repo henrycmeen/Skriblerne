@@ -139,13 +139,13 @@ export function reconcileSharedReviewState(localState = {}, sharedState = {}, ha
         : mergeReviewStates({}, sharedState);
 }
 
-export function isReviewCompleteForApply(review = {}) {
+export function isReviewCompleteForApply(review = {}, originalWord = '') {
     if (!hasRequiredReviewers(review)) {
         return false;
     }
 
     if (review.status === 'approved') {
-        return true;
+        return normalizeReviewWord(originalWord).length > 0;
     }
 
     return review.status === 'flagged' && normalizeReviewWord(review.suggestedWord).length > 0;
@@ -166,7 +166,7 @@ export function buildMonthProgress(words, reviewState) {
         const review = reviewState[word.monthDay] || {};
 
         progress.total += 1;
-        if (isReviewCompleteForApply(review)) {
+        if (isReviewCompleteForApply(review, word.word)) {
             progress.complete += 1;
         } else {
             progress.open += 1;
