@@ -19,7 +19,7 @@ import {
     normalizeReviewers,
     reconcileSharedReviewState,
     REQUIRED_REVIEWERS
-} from './review-progress.mjs?v=20260717-1';
+} from './review-progress.mjs?v=20260718-1';
 
 const REVIEW_STORAGE_KEY = 'skriblerne-word-review-v1';
 const REVIEW_FILTER_STORAGE_KEY = 'skriblerne-word-review-filter-v1';
@@ -302,6 +302,7 @@ function render(words) {
 function renderWordRow(entry) {
     const review = reviewState[entry.monthDay] || {};
     const reviewers = normalizeReviewers(review.reviewers);
+    const hasWord = Boolean(entry.word.trim());
     const wordLabel = entry.word || 'Tomt ord';
     const activeReviewerHasApproved = review.status === 'approved' && reviewers[activeReviewer];
     const row = document.createElement('article');
@@ -326,6 +327,7 @@ function renderWordRow(entry) {
         <span>OK</span>
     `;
     const approvedInput = approvedLabel.querySelector('input');
+    approvedInput.disabled = !hasWord;
 
     const flaggedLabel = document.createElement('label');
     flaggedLabel.className = 'review-check';
@@ -338,10 +340,12 @@ function renderWordRow(entry) {
     const quickApproveButton = document.createElement('button');
     quickApproveButton.type = 'button';
     quickApproveButton.className = 'review-quick-approve';
-    quickApproveButton.disabled = activeReviewerHasApproved;
-    quickApproveButton.textContent = activeReviewerHasApproved
-        ? `OK av ${OWNER_LABELS[activeReviewer]}`
-        : `OK som ${OWNER_LABELS[activeReviewer]}`;
+    quickApproveButton.disabled = !hasWord || activeReviewerHasApproved;
+    quickApproveButton.textContent = !hasWord
+        ? 'Fyll inn nytt ord'
+        : activeReviewerHasApproved
+            ? `OK av ${OWNER_LABELS[activeReviewer]}`
+            : `OK som ${OWNER_LABELS[activeReviewer]}`;
     quickApproveButton.setAttribute('aria-label', `Godkjenn ${wordLabel} som ${OWNER_LABELS[activeReviewer]}`);
 
     const reviewerGroup = document.createElement('div');
@@ -746,7 +750,7 @@ function getReviewStats(words) {
         if (review.status) {
             reviewed += 1;
         }
-        if (!isReviewCompleteForApply(review)) {
+        if (!isReviewCompleteForApply(review, word.word)) {
             open += 1;
         }
         REQUIRED_REVIEWERS.forEach((reviewer) => {
@@ -807,7 +811,7 @@ function matchesReviewFilter(word, filter = activeFilter) {
     const originalWord = normalizeWord(word.word);
 
     if (filter === 'open') {
-        return !isReviewCompleteForApply(review);
+        return !isReviewCompleteForApply(review, word.word);
     }
 
     if (filter === 'mine') {

@@ -18,7 +18,7 @@ assert.match(html, /data-review-filter="missing-both"/);
 assert.match(html, /data-review-filter="missing-henry"/);
 assert.match(html, /data-review-filter="missing-ellinor"/);
 assert.match(html, /js\/word-review\.js\?v=20260718-1/);
-assert.match(script, /review-progress\.mjs\?v=20260717-1/);
+assert.match(script, /review-progress\.mjs\?v=20260718-1/);
 assert.match(script, /approveReviewForReviewer/);
 assert.match(script, /review-quick-approve/);
 assert.match(script, /activeFilter === 'mine'/);
@@ -47,5 +47,7 @@ assert.match(script, /importert og flettet fra/);
 assert.match(script, /entry\.word \|\| 'Tomt ord'/);
 assert.match(script, /wordName\.textContent = wordLabel/);
 assert.doesNotMatch(script, /heading\.innerHTML/);
+assert.match(script, /approvedInput\.disabled = !hasWord/);
+assert.match(script, /isReviewCompleteForApply\(review, word\.word\)/);
 
 console.log('Validated word-review page initialization.');

@@ -59,6 +59,7 @@ function getReviewStatus(words) {
     const blockers = [];
     const stats = {
         approved: 0,
+        approvedEmptyWords: 0,
         duplicateDates: 0,
         duplicateFinalWords: 0,
         flagged: 0,
@@ -96,6 +97,9 @@ function getReviewStatus(words) {
         if (status === 'approved') {
             stats.approved += 1;
             stats.reviewed += 1;
+            if (!normalizeWord(originalWord)) {
+                stats.approvedEmptyWords += 1;
+            }
         } else if (status === 'flagged') {
             stats.flagged += 1;
             stats.reviewed += 1;
@@ -153,6 +157,9 @@ function getReviewStatus(words) {
     }
     if (stats.flaggedWithoutSuggestion > 0) {
         blockers.push(`${stats.flaggedWithoutSuggestion} Se på-ord uten nytt ord`);
+    }
+    if (stats.approvedEmptyWords > 0) {
+        blockers.push(`${stats.approvedEmptyWords} tomme datoer markert OK uten eksisterende ord`);
     }
     REQUIRED_REVIEWERS.forEach(([key, label]) => {
         if (stats.missingReviewers[key] > 0) {

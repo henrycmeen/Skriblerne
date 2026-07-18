@@ -185,6 +185,15 @@ function main() {
             'duplicate final word review'
         );
 
+        const approvedBlankReview = buildReview({
+            '05-11': { status: 'approved', suggestedWord: '' }
+        });
+        assertFailingWith(
+            runApply(writeReview(tempDir, 'approved-blank', approvedBlankReview)),
+            /05-11 har ikke noe ord å godkjenne; bruk Se på og fyll inn nytt ord/,
+            'approved blank word review'
+        );
+
         const missingDateReview = buildReview();
         missingDateReview.words = missingDateReview.words.filter((word) => word.monthDay !== '01-01');
         assertFailingWith(

@@ -150,6 +150,9 @@ function validateAndBuild(words) {
 
         if (status === 'approved') {
             stats.approved += 1;
+            if (!normalizeWord(entry.word)) {
+                errors.push(`${entry.monthDay} har ikke noe ord å godkjenne; bruk Se på og fyll inn nytt ord.`);
+            }
         }
 
         if (status === 'flagged') {
