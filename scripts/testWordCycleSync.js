@@ -12,8 +12,8 @@ const finalUpdates = buildFinalWordUpdates(WORD_CYCLE);
 const temporaryWords = temporaryUpdates.map((operation) => operation.updateOne.update.$set.word);
 const activeWords = new Set(WORD_CYCLE.map((entry) => entry.word));
 
-assert.equal(temporaryUpdates.length, 365);
-assert.equal(new Set(temporaryWords).size, 365);
+assert.equal(temporaryUpdates.length, 130);
+assert.equal(new Set(temporaryWords).size, 130);
 assert.equal(temporaryWords.some((word) => activeWords.has(word)), false);
 assert.equal(temporaryUpdates.every((operation) => operation.updateOne.upsert === false), true);
 assert.equal(finalUpdates.length, 365);
@@ -22,7 +22,8 @@ assert.deepEqual(
     finalUpdates[0].updateOne.update.$set,
     WORD_CYCLE[0]
 );
-assert.equal(finalUpdates[130].updateOne.update.$set.word, '');
+assert.equal(finalUpdates[130].updateOne.update.$set.word, undefined);
+assert.equal(finalUpdates[130].updateOne.update.$setOnInsert.word, '');
 assert.deepEqual(
     findObsoleteWordIndexes([
         { name: '_id_' },

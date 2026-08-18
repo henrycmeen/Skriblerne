@@ -1,6 +1,6 @@
 # Skriblerne
 
-Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. De 130 opprinnelige ordene ligger på sine historiske dagnumre. De resterende datoene er tomme til nye ord er valgt i ordgjennomgangen. Et valgt ord gjentas på samme dato hvert år, mens bilder lagres per år og dato slik at samme dag kan sammenlignes over tid.
+Skriblerne viser ett ord om dagen. Nye ord legges nederst i den opprinnelige køen, slik at de 130 historiske ordene alltid beholder samme rekkefølge. Køen startet 22. juni 2026 og har 365 plasser.
 
 ## Produksjon
 
@@ -12,13 +12,13 @@ Skriblerne er en minimalistisk norsk foto- og tegnelek av Ellinor og Henry. De 1
 
 ## Arkitektur
 
-Skriblerne 2.0 bruker én fast 365-dagers datosyklus i `data/wordCycle.js`, med 130 historiske ord og 235 åpne plasser.
+Skriblerne bruker én 365-dagers ordkø. `data/wordCycle.js` eier de 130 historiske ordene, mens nye ord lagres i de første åpne plassene i MongoDB.
 
-- 29. februar har ikke egen database-dato. På skuddår normaliseres dagens ord til 28. februar for å holde syklusen på 365 faste datoer.
-- `server.js` synkroniserer ordsyklusen til MongoDB ved oppstart.
+- `lib/wordQueue.js` kobler dag 1 til 22. juni 2026 og bevarer den historiske rekkefølgen.
+- `server.js` synkroniserer de historiske ordene til MongoDB ved oppstart uten å overskrive nye ord i åpne plasser.
 - `models/Word.js` lagrer de faste ordene med `dayOfYear`, `monthDay`, `month`, `day` og `word`.
 - `models/Memory.js` lagrer bilder med unik nøkkel på `year` + `monthDay` + `owner` (`henry` eller `ellinor`).
-- `index.html`, `js/app.js`, `js/history-utils.mjs` og `js/overview-utils.mjs` håndterer dagens ord, årsoversikt, bildeopplasting, årsnavigasjon og sammenligning mot tidligere år.
+- `index.html`, `simple.css` og `js/simple-app.js` viser dagens ord, ordlisten og feltet for å legge til neste ord.
 - Historikklisten for samme dato henter bare metadata og thumbnails; full `imageData` hentes først for valgt bilde via detaljendepunktet.
 - `ordliste.html`, `js/word-review.js` og `js/review-progress.mjs` brukes til manuell gjennomgang av alle 365 ordene, med egen avhuking for Henry og Ellinor.
 - Ordgjennomgangen kan filtreres på alle ord, uavklarte ord, ord merket `Se på` og ord med forslag.
@@ -26,14 +26,10 @@ Skriblerne 2.0 bruker én fast 365-dagers datosyklus i `data/wordCycle.js`, med 
 
 ## Funksjoner
 
-- Dagens ord med bildeopplasting fra kamera eller bildebibliotek når datoen har fått et ord.
-- Årsoversikt med 365 prikker, en for hver dato.
-- Navigasjon mellom år.
-- Diskret datovelger for å gå direkte til en dato og laste opp bilde der.
-- Opplasting og erstatning av bilde for valgt dato og år.
-- Visning av bilder fra samme dato på tvers av år.
-- Side-ved-side-sammenligning av valgt år og tidligere år.
-- Eksport og import av ordgjennomgang som JSON.
+- Ett stort ord for dagen.
+- Den opprinnelige ordlisten i korrekt rekkefølge.
+- Legg til neste ord nederst i køen med lagringskoden.
+- Eksisterende bilde-/minnedata og ordgjennomgang er bevart i backend og kan brukes ved en senere utvidelse.
 
 ## Kommandoer
 
@@ -57,7 +53,7 @@ PORT=3024
 SKRIBLERNE_EDIT_CODE=...
 ```
 
-`SKRIBLERNE_EDIT_CODE` kreves for bildeopplasting. Ikke legg `.env` eller faktiske hemmeligheter i repoet.
+`SKRIBLERNE_EDIT_CODE` kreves for å legge til ord og for eksisterende skriveoperasjoner. Ikke legg `.env` eller faktiske hemmeligheter i repoet.
 
 ## Ordgjennomgang
 
@@ -128,7 +124,7 @@ launchctl kickstart -k gui/$(id -u)/com.henrymeen.skriblerne
 Frontend deploy når statiske filer er endret:
 
 ```bash
-rsync -a index.html ordliste.html styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
-rsync -a js/app.js js/history-utils.mjs js/identity-utils.mjs js/overview-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
+rsync -a index.html ordliste.html simple.css styles.css /Users/henrymeen/srv/www/henrymeen/skriblerne/
+rsync -a js/simple-app.js js/config.js js/app.js js/history-utils.mjs js/identity-utils.mjs js/overview-utils.mjs js/review-progress.mjs js/word-review.js /Users/henrymeen/srv/www/henrymeen/skriblerne/js/
 rsync -a data/wordReviewCandidates.json /Users/henrymeen/srv/www/henrymeen/skriblerne/data/
 ```

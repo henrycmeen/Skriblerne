@@ -2,17 +2,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '..', 'ordliste.html'), 'utf8');
 const script = fs.readFileSync(path.join(__dirname, '..', 'js', 'word-review.js'), 'utf8');
 
-const indexStylesVersion = /styles\.css\?v=(\d{8}-\d+)/.exec(indexHtml)?.[1];
 const reviewStylesVersion = /styles\.css\?v=(\d{8}-\d+)/.exec(html)?.[1];
 
 assert.match(html, /id="loadSharedReviewButton"/);
 assert.match(html, /id="saveSharedReviewButton"/);
 assert.match(html, /id="reviewSyncStatus"/);
-assert.equal(reviewStylesVersion, indexStylesVersion);
 assert.equal(reviewStylesVersion, '20260622-25');
 assert.match(html, /data-review-filter="missing-both"/);
 assert.match(html, /data-review-filter="missing-henry"/);
