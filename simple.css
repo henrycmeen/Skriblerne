@@ -1,0 +1,270 @@
+:root {
+    color-scheme: light dark;
+    --background: #ffffff;
+    --foreground: #181818;
+    --muted: #777777;
+    --line: #d8d8d8;
+    --surface: #f5f5f5;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #111111;
+        --foreground: #f5f5f5;
+        --muted: #a0a0a0;
+        --line: #383838;
+        --surface: #1b1b1b;
+    }
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    background: var(--background);
+    color: var(--foreground);
+}
+
+body {
+    margin: 0;
+    min-width: 20rem;
+    background: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.site-header {
+    display: flex;
+    align-items: center;
+    width: min(100% - 2.5rem, 44rem);
+    min-height: 4.5rem;
+    margin-inline: auto;
+}
+
+.site-name {
+    color: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+}
+
+main {
+    width: min(100% - 2.5rem, 44rem);
+    margin-inline: auto;
+}
+
+.daily-word {
+    display: grid;
+    place-content: center;
+    min-height: calc(100svh - 4.5rem);
+    padding-block: 3rem 6rem;
+    text-align: center;
+}
+
+.daily-word p {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.daily-word h1 {
+    margin: 0;
+    font-family: "Crimson Text", Georgia, serif;
+    font-size: clamp(3.25rem, 13vw, 7rem);
+    font-weight: 600;
+    line-height: 0.95;
+    overflow-wrap: anywhere;
+}
+
+.word-bank {
+    width: min(100%, 34rem);
+    margin-inline: auto;
+    padding-block: 4rem 8rem;
+}
+
+.word-bank h2 {
+    margin: 0 0 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.add-word-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+}
+
+.add-word-form:focus-within {
+    border-color: var(--foreground);
+}
+
+.add-word-form input {
+    min-width: 0;
+    padding: 0.875rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1rem;
+}
+
+.add-word-form input::placeholder {
+    color: var(--muted);
+}
+
+.add-word-form button {
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+.add-word-form button:hover,
+.add-word-form button:focus-visible {
+    background: var(--surface);
+    outline: none;
+}
+
+.status {
+    min-height: 1.25rem;
+    margin: 0.75rem 0 1rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.status[data-tone="error"] {
+    color: #a33131;
+}
+
+.word-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: words;
+}
+
+.word-list li {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.875rem;
+    border-bottom: 1px solid var(--line);
+    counter-increment: words;
+}
+
+.word-list li::before {
+    content: counter(words, decimal-leading-zero);
+    color: var(--muted);
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.word-list span {
+    font-family: "Crimson Text", Georgia, serif;
+    font-size: 1.375rem;
+}
+
+.code-dialog {
+    width: min(calc(100% - 2rem), 22rem);
+    padding: 0;
+    border: 1px solid var(--line);
+    background: var(--background);
+    color: var(--foreground);
+}
+
+.code-dialog::backdrop {
+    background: rgb(0 0 0 / 0.35);
+}
+
+.code-dialog form {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.code-dialog label {
+    font-size: 0.875rem;
+}
+
+.code-dialog input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: inherit;
+}
+
+.code-dialog p {
+    min-height: 1rem;
+    margin: 0;
+    color: #a33131;
+    font-size: 0.75rem;
+}
+
+.code-dialog div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.code-dialog button {
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--line);
+    background: var(--background);
+    color: inherit;
+    cursor: pointer;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 30rem) {
+    .site-header,
+    main {
+        width: min(100% - 2rem, 44rem);
+    }
+
+    .daily-word {
+        padding-bottom: 4rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+    }
+}

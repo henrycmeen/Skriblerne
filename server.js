@@ -19,12 +19,16 @@ const {
     buildTemporaryWordUpdates,
     findObsoleteWordIndexes
 } = require('./lib/wordCycleSync');
+const {
+    addNextWord,
+    getWordForSequenceDate,
+    mergeStoredWords,
+    sequenceDateForDay
+} = require('./lib/wordQueue');
 const { bootstrapApplication } = require('./lib/applicationBootstrap');
 const {
     WORD_CYCLE,
     formatDateForYear,
-    getMonthDayFromDate,
-    getWordForMonthDay,
     isFutureCycleDate,
     isValidMonthDay
 } = require('./data/wordCycle');
@@ -127,7 +131,7 @@ function requireEditCode(req, res, next) {
     const configuredCode = process.env.SKRIBLERNE_EDIT_CODE;
 
     if (!configuredCode) {
-        return res.status(503).json({ error: 'Bildeopplasting er ikke aktivert.' });
+        return res.status(503).json({ error: 'Lagring er ikke aktivert.' });
     }
 
     if (req.get(EDIT_CODE_HEADER) !== configuredCode) {
@@ -180,25 +184,42 @@ async function syncWordCycle() {
     await Word.bulkWrite(buildFinalWordUpdates(WORD_CYCLE));
 }
 
+async function loadEffectiveWordCycle() {
+    const storedWords = await Word.find({}).sort({ dayOfYear: 1 }).lean();
+    return mergeStoredWords(WORD_CYCLE, storedWords);
+}
+
 // Get today's word
 app.get('/api/word/today', async (req, res) => {
-    const today = new Date();
-    const monthDay = getMonthDayFromDate(today);
-    const word = getWordForMonthDay(monthDay);
+    try {
+        const wordCycle = await loadEffectiveWordCycle();
+        const word = getWordForSequenceDate(wordCycle, new Date());
 
-    if (!word?.word) {
-        return res.status(404).json({ error: 'Ingen ord for denne datoen' });
+        if (!word) {
+            return res.status(404).json({ error: 'Ingen ord i dag' });
+        }
+
+        res.json({
+            ...word,
+            date: sequenceDateForDay(word.dayOfYear)
+        });
+    } catch (error) {
+        console.error('Error fetching today word:', error);
+        res.status(500).json({ error: 'Kunne ikke hente dagens ord' });
     }
-
-    res.json({
-        ...word,
-        year: today.getFullYear(),
-        date: formatDateForYear(today.getFullYear(), monthDay)
-    });
 });
 
 app.get('/api/words', async (req, res) => {
-    res.json(WORD_CYCLE);
+    try {
+        const wordCycle = await loadEffectiveWordCycle();
+        res.json(wordCycle.map((entry) => ({
+            ...entry,
+            date: sequenceDateForDay(entry.dayOfYear)
+        })));
+    } catch (error) {
+        console.error('Error fetching words:', error);
+        res.status(500).json({ error: 'Kunne ikke hente ordene' });
+    }
 });
 
 app.get('/api/word-review', async (_req, res) => {
@@ -236,6 +257,7 @@ app.post('/api/word-review', requireEditCode, async (req, res) => {
 app.get('/api/calendar/:year', async (req, res) => {
     try {
         const year = normalizeYear(req.params.year);
+        const wordCycle = await loadEffectiveWordCycle();
         const memories = await Memory.find({ year }).select('-imageData').sort({ monthDay: 1 }).lean();
         const memoriesByDate = memories.reduce((days, memory) => {
             const dayMemories = days.get(memory.monthDay) || [];
@@ -246,7 +268,7 @@ app.get('/api/calendar/:year', async (req, res) => {
 
         res.json({
             year,
-            days: WORD_CYCLE.map((day) => {
+            days: wordCycle.map((day) => {
                 const dayMemories = (memoriesByDate.get(day.monthDay) || []).sort(compareMemories);
                 const serializedMemories = dayMemories.map((memory) => serializeMemory(memory));
 
@@ -308,7 +330,8 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
         const year = normalizeYear(req.body.year);
         const { monthDay, imageData, thumbnailData, mimeType, originalName = '' } = req.body;
         const owner = normalizeOwner(req.body.owner);
-        const word = getWordForMonthDay(monthDay);
+        const wordCycle = await loadEffectiveWordCycle();
+        const word = wordCycle.find((entry) => entry.monthDay === monthDay);
 
         if (!word) {
             return res.status(400).json({ error: 'Ugyldig dato' });
@@ -358,18 +381,43 @@ app.post('/api/memories', requireEditCode, async (req, res) => {
     }
 });
 
-app.post('/api/word', (_req, res) => {
-    res.status(410).json({ error: 'Ordlisten er fast i Skriblerne 2.0' });
-});
+async function addWord(req, res) {
+    try {
+        const wordCycle = await loadEffectiveWordCycle();
+        const savedWord = await addNextWord({
+            rawWord: req.body?.word,
+            wordCycle,
+            saveWord: async (nextWord, word) => Word.findOneAndUpdate(
+                { monthDay: nextWord.monthDay, word: '' },
+                { $set: { word } },
+                { new: true, runValidators: true }
+            ).lean()
+        });
 
-app.post('/api/words', (_req, res) => {
-    res.status(410).json({ error: 'Ordlisten er fast i Skriblerne 2.0' });
-});
+        res.status(201).json(savedWord);
+    } catch (error) {
+        if (error.statusCode || /^Skriv inn et ord|^Ordet kan være/.test(error.message)) {
+            return res.status(error.statusCode || 400).json({ error: error.message });
+        }
 
-app.get('/api/word/random', (_req, res) => {
-    const assignedWords = WORD_CYCLE.filter((entry) => entry.word);
-    const word = assignedWords[Math.floor(Math.random() * assignedWords.length)];
-    res.json(word);
+        console.error('Error adding word:', error);
+        res.status(500).json({ error: 'Kunne ikke legge til ordet' });
+    }
+}
+
+app.post('/api/word', requireEditCode, addWord);
+app.post('/api/words', requireEditCode, addWord);
+
+app.get('/api/word/random', async (_req, res) => {
+    try {
+        const wordCycle = await loadEffectiveWordCycle();
+        const assignedWords = wordCycle.filter((entry) => entry.word);
+        const word = assignedWords[Math.floor(Math.random() * assignedWords.length)];
+        res.json(word);
+    } catch (error) {
+        console.error('Error fetching random word:', error);
+        res.status(500).json({ error: 'Kunne ikke hente et tilfeldig ord' });
+    }
 });
 
 bootstrapApplication({

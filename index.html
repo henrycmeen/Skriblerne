@@ -3,128 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Skriblerne - En tegnelek av Ellinor og Henry">
+    <meta name="description" content="Skriblerne – ett ord om dagen">
     <title>Skriblerne</title>
     <link rel="icon" href="data:,">
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20260622-25">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600&family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="simple.css?v=20260818-1">
 </head>
 <body>
-    <div class="app-shell">
-        <header class="topbar" role="banner">
-            <div>
-                <h1 class="site-title">Skriblerne</h1>
-                <p class="subtitle">En tegnelek av Ellinor og Henry</p>
-            </div>
-            <div class="topbar-actions" aria-label="Sidevalg">
-                <div class="identity-switch" aria-label="Velg hvem du er">
-                    <span class="identity-prefix" id="identityLabel">Jeg er</span>
-                    <button class="identity-button" type="button" data-identity="henry" aria-pressed="true">Henry</button>
-                    <button class="identity-button" type="button" data-identity="ellinor" aria-pressed="false">Ellinor</button>
-                </div>
-                <a class="text-link" href="ordliste.html">Ord</a>
-                <button class="text-button" id="todayButton" type="button">I dag</button>
-            </div>
-        </header>
+    <header class="site-header">
+        <a href="." class="site-name">Skriblerne</a>
+    </header>
 
-        <main class="workspace" role="main">
-            <section class="view view--active" id="todayView" aria-labelledby="todayHeading">
-                <div class="date-bar">
-                    <button class="icon-button" id="previousYearButton" type="button" aria-label="Forrige år">‹</button>
-                    <div class="date-copy">
-                        <p id="selectedDateLabel">Laster dato</p>
-                        <h2 id="todayHeading">Laster ord</h2>
-                        <div class="date-tools">
-                            <button class="date-picker-button" id="datePickerButton" type="button">Velg dato</button>
-                            <input class="date-picker-input" id="datePickerInput" type="date" min="1900-01-01" max="9999-12-31" aria-label="Velg dato">
-                        </div>
-                    </div>
-                    <button class="icon-button" id="nextYearButton" type="button" aria-label="Neste år">›</button>
-                </div>
+    <main>
+        <section class="daily-word" aria-labelledby="word-display">
+            <p>Dagens ord</p>
+            <h1 id="word-display" aria-live="polite">Laster</h1>
+        </section>
 
-                <div class="year-strip" id="yearStrip" aria-label="Bilder fra samme dato tidligere år"></div>
-                <div class="day-owner-strip" id="dayOwnerStrip" aria-label="Bilder denne datoen"></div>
-
-                <section class="photo-stage" aria-live="polite">
-                    <div class="photo-frame" id="photoFrame">
-                        <img id="currentImage" alt="" hidden>
-                        <div class="empty-memory" id="emptyMemory">
-                            <button class="add-photo-button" id="addPhotoButton" type="button" aria-label="Legg til bilde for valgt dato">+</button>
-                            <p id="emptyMemoryText">Legg til bilde</p>
-                        </div>
-                    </div>
-                    <p class="photo-meta" id="photoMeta" hidden></p>
-                    <button class="replace-photo-button" id="replacePhotoButton" type="button" hidden>Bytt bilde</button>
-                    <input id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" hidden>
-                    <input id="libraryInput" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden>
-                    <p class="status-text" id="statusText" role="status"></p>
-                </section>
-
-                <section class="comparison" aria-labelledby="comparisonHeading">
-                    <h3 id="comparisonHeading">Samme dato</h3>
-                    <div class="comparison-list" id="comparisonList"></div>
-                    <div class="comparison-pair" id="comparisonPair" hidden></div>
-                </section>
-            </section>
-
-            <section class="view" id="overviewView" aria-labelledby="overviewHeading" hidden>
-                <div class="overview-header">
-                    <button class="icon-button" id="overviewPreviousYearButton" type="button" aria-label="Forrige år">‹</button>
-                    <div>
-                        <p class="eyebrow">Årsoversikt</p>
-                        <h2 id="overviewHeading">2026</h2>
-                        <p class="overview-legend" id="overviewLegend">Prikker: bare Henry 0, bare Ellinor 0, begge 0.</p>
-                    </div>
-                    <button class="icon-button" id="overviewNextYearButton" type="button" aria-label="Neste år">›</button>
-                </div>
-                <div class="year-grid" id="yearGrid" aria-label="365 dager i valgt år"></div>
-                <p class="grid-help" id="overviewSummary"></p>
-            </section>
-        </main>
-
-        <nav class="bottom-nav" aria-label="Visning">
-            <button class="nav-button" type="button" data-view="overview" aria-pressed="false">
-                <span class="nav-icon nav-icon--grid" aria-hidden="true"></span>
-                <span>Oversikt</span>
-            </button>
-            <button class="nav-button nav-button--active" type="button" data-view="today" aria-pressed="true">
-                <span class="nav-icon nav-icon--day" aria-hidden="true"></span>
-                <span>Dagens ord</span>
-            </button>
-        </nav>
-
-        <div class="edit-code-dialog" id="editCodeDialog" role="dialog" aria-modal="true" aria-labelledby="editCodeHeading" hidden>
-            <form class="edit-code-panel" id="editCodeForm">
-                <h2 id="editCodeHeading">Kode for lagring</h2>
-                <p class="dialog-context" id="editCodeContext"></p>
-                <input class="visually-hidden" type="text" name="username" autocomplete="username" value="skriblerne" tabindex="-1" aria-hidden="true" readonly>
-                <input id="editCodeInput" name="password" type="password" autocomplete="current-password" aria-label="Kode for lagring">
-                <p class="edit-code-message" id="editCodeMessage" role="status"></p>
-                <div class="edit-code-actions">
-                    <button class="text-button" id="cancelEditCodeButton" type="button">Avbryt</button>
-                    <button class="review-export-button" type="submit">Fortsett</button>
-                </div>
+        <section class="word-bank" aria-labelledby="word-bank-heading">
+            <h2 id="word-bank-heading">Ord</h2>
+            <form class="add-word-form" id="addWordForm">
+                <label class="visually-hidden" for="newWord">Nytt ord</label>
+                <input id="newWord" name="word" type="text" maxlength="80" placeholder="Nytt ord" autocomplete="off" enterkeyhint="done">
+                <button type="submit" aria-label="Legg til ord">+</button>
             </form>
-        </div>
+            <p class="status" id="statusMessage" role="status" aria-live="polite"></p>
+            <ol class="word-list" id="words-container" aria-label="Ord i rekkefølge"></ol>
+        </section>
+    </main>
 
-        <div class="photo-source-dialog" id="photoSourceDialog" role="dialog" aria-modal="true" aria-labelledby="photoSourceHeading" hidden>
-            <div class="photo-source-panel">
-                <h2 id="photoSourceHeading">Legg til bilde</h2>
-                <p class="dialog-context" id="photoSourceContext"></p>
-                <button class="review-export-button" id="cameraButton" type="button">Ta bilde</button>
-                <button class="review-export-button" id="libraryButton" type="button">Velg bilde</button>
-                <button class="text-button" id="cancelPhotoSourceButton" type="button">Avbryt</button>
+    <dialog class="code-dialog" id="editCodeDialog">
+        <form method="dialog" id="editCodeForm">
+            <label for="editCodeInput">Kode</label>
+            <input id="editCodeInput" name="password" type="password" autocomplete="current-password">
+            <p id="editCodeMessage" role="status"></p>
+            <div>
+                <button type="button" id="cancelEditCodeButton">Avbryt</button>
+                <button type="submit">Legg til</button>
             </div>
-        </div>
+        </form>
+    </dialog>
 
-        <div class="login-dialog" id="loginDialog" role="dialog" aria-modal="true" aria-labelledby="loginHeading" hidden>
-            <div class="login-panel">
-                <h2 id="loginHeading">Hvem er du?</h2>
-                <button class="review-export-button" type="button" data-login-owner="henry">Henry</button>
-                <button class="review-export-button" type="button" data-login-owner="ellinor">Ellinor</button>
-            </div>
-        </div>
-    </div>
-    <script type="module" src="js/app.js?v=20260718-1"></script>
+    <script type="module" src="js/simple-app.js?v=20260818-1"></script>
 </body>
 </html>
